@@ -1,0 +1,30 @@
+# 依赖
+node_modules/
+server/node_modules/
+
+# 构建产物
+dist/
+server/dist/
+
+# 本地数据库（沙箱测试用）
+*.db
+*.db-*
+office-todo.db
+
+# 日志
+*.log
+npm-debug.log*
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# IDE / 操作系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# TRAE
+.trae/

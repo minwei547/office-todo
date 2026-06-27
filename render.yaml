@@ -1,0 +1,32 @@
+# Render Blueprint 配置
+# 部署：在 Render 控制台选 "New > Blueprint" → 连接 GitHub 仓库 → 自动识别此文件
+# 文档：https://render.com/docs/blueprint-spec
+
+databases:
+  - name: office-todo-db
+    plan: free
+    databaseName: office_todo
+    # Render 免费层 Postgres，提供 DATABASE_URL 内部连接串
+    # 90 天未使用会被回收，但首次部署即激活
+
+services:
+  - type: web
+    name: office-todo
+    runtime: node
+    plan: free
+    # 自动构建：前端 vite build → 后端 tsc 编译 → 单一 Node 服务同时托管前端静态文件 + REST API + WebSocket
+    buildCommand: npm install && npm run build:all
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: office-todo-db
+          property: connectionString
+      - key: DATABASE_SSL
+        value: "true"
+      - key: PORT
+        value: 10000
