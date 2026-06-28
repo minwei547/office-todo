@@ -28,3 +28,7 @@ Thumbs.db
 
 # TRAE
 .trae/
+
+# Supabase
+supabase/.temp/
+supabase/.supabase/

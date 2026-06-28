@@ -125,9 +125,8 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     if (session.teamId) {
       try {
         await get().refreshTeam(session.teamId);
-        socket.connect(session.teamId, session.memberId);
+        socket.connect(session.teamId);
       } catch {
-        // 身份失效
         useSessionStore.setState({ memberId: null, teamId: null });
         setMemberId(null);
         set({ currentMemberId: null, currentTeamId: null, team: null });
@@ -176,7 +175,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     });
     set({ currentMemberId: result.memberId, currentTeamId: result.teamId });
     await get().refreshTeam(result.teamId);
-    socket.connect(result.teamId, result.memberId);
+    socket.connect(result.teamId);
     return result;
   },
 
@@ -190,19 +189,16 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     });
     set({ currentMemberId: result.memberId, currentTeamId: result.teamId });
     await get().refreshTeam(result.teamId);
-    socket.connect(result.teamId, result.memberId);
+    socket.connect(result.teamId);
     return result;
   },
 
   switchTeam: async (teamId) => {
-    const cur = get().currentMemberId;
-    if (!cur) return;
-    // 切换团队：当前 memberId 仍是同一身份，直接刷新
     socket.disconnect();
     useSessionStore.setState({ teamId });
     set({ currentTeamId: teamId });
     await get().refreshTeam(teamId);
-    socket.connect(teamId, cur);
+    socket.connect(teamId);
   },
 
   renameTeam: async (teamId, name) => {
@@ -300,9 +296,15 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     });
   },
 
-  // WS 推送合并
+  // 轮询同步 + 推送合并
   applyServerEvent: (event) => {
     switch (event.type) {
+      case "sync":
+        {
+          const teamId = get().currentTeamId;
+          if (teamId) get().refreshTeam(teamId);
+        }
+        break;
       case "team:renamed":
         set((s) => (s.team?.teamId === event.teamId ? { team: event.team } : {}));
         break;

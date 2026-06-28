@@ -1,6 +1,3 @@
-// REST API 客户端：所有请求带 x-member-id 头
-// 前缀 /api 由 vite proxy 转发到后端（生产环境由后端静态托管同源）
-
 const MEMBER_KEY = "office-todo-member-id";
 
 export function getMemberId(): string | null {
@@ -11,6 +8,11 @@ export function setMemberId(id: string | null) {
   if (id) localStorage.setItem(MEMBER_KEY, id);
   else localStorage.removeItem(MEMBER_KEY);
 }
+
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.REACT_APP_API_BASE_URL ||
+  "";
 
 async function request<T>(
   path: string,
@@ -23,7 +25,8 @@ async function request<T>(
   };
   if (memberId) headers["x-member-id"] = memberId;
 
-  const res = await fetch(path, { ...options, headers });
+  const url = API_BASE ? `${API_BASE}${path}` : path;
+  const res = await fetch(url, { ...options, headers });
   const text = await res.text();
   let data: any = null;
   try {
@@ -41,7 +44,6 @@ async function request<T>(
 }
 
 export const api = {
-  // 团队
   createTeam: (teamName: string, nickname: string) =>
     request<{ teamId: string; memberId: string; inviteCode: string }>(
       "/api/teams",
@@ -65,7 +67,6 @@ export const api = {
       body: JSON.stringify({ nickname }),
     }),
 
-  // 任务
   getTeamTasks: (teamId: string) =>
     request<{ tasks: any[]; activities: any[]; notes: any[] }>(
       `/api/teams/${teamId}/tasks`,
@@ -100,14 +101,12 @@ export const api = {
   deleteTask: (taskId: string) =>
     request<{ ok: boolean }>(`/api/tasks/${taskId}`, { method: "DELETE" }),
 
-  // 备注
   addNote: (taskId: string, content: string) =>
     request<{ note: any; activity: any }>(`/api/tasks/${taskId}/notes`, {
       method: "POST",
       body: JSON.stringify({ content }),
     }),
 
-  // 私信
   getConversations: () =>
     request<{ conversations: any[] }>(`/api/messages`),
   getConversation: (peerId: string) =>
@@ -122,7 +121,6 @@ export const api = {
       method: "POST",
     }),
 
-  // 导出
   exportTeam: (teamId: string) =>
     request<any>(`/api/teams/${teamId}/export`),
 };

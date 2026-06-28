@@ -29,14 +29,9 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      // 前端开发时：/api 与 /ws 转发到后端 3001
       '/api': {
-        target: 'http://localhost:3001',
+        target: process.env.VITE_API_BASE_URL || 'http://localhost:3001',
         changeOrigin: true,
-      },
-      '/ws': {
-        target: 'ws://localhost:3001',
-        ws: true,
       },
     },
   },
