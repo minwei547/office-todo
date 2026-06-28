@@ -22,7 +22,7 @@ class PollClient {
           l({ type: "sync" }),
         );
       }
-    }, 2500);
+    }, 5000);
     this.listeners.forEach((l) => l({ type: "sync" }));
   }
 

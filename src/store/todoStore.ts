@@ -202,55 +202,122 @@ export const useTodoStore = create<TodoState>((set, get) => ({
   },
 
   renameTeam: async (teamId, name) => {
+    set((s) => ({ team: s.team?.teamId === teamId ? { ...s.team, teamName: name } : s.team }));
     await api.renameTeam(teamId, name);
-    // WS 推送会更新本地
   },
 
   updateNickname: async (nickname) => {
     const cur = get().currentMemberId;
     if (!cur) return;
-    await api.updateNickname(cur, nickname);
+    set((s) => ({
+      members: {
+        ...s.members,
+        [cur]: { ...s.members[cur], nickname },
+      },
+    }));
     useSessionStore.setState({ nickname });
-    // WS 推送会更新本地 members
+    await api.updateNickname(cur, nickname);
   },
 
   // 任务
   addTask: async (input) => {
-    await api.createTask(input);
-    // WS 推送会更新本地
+    const { task, activity } = await api.createTask(input);
+    set((s) => ({
+      tasks: { ...s.tasks, [task.taskId]: task },
+      activities: { ...s.activities, [activity.activityId]: activity },
+    }));
   },
 
   updateTask: async (taskId, patch) => {
-    await api.updateTask(taskId, patch);
+    set((s) => ({
+      tasks: { ...s.tasks, [taskId]: { ...s.tasks[taskId], ...patch } },
+    }));
+    const { activity } = await api.updateTask(taskId, patch);
+    if (activity) {
+      set((s) => ({
+        activities: { ...s.activities, [activity.activityId]: activity },
+      }));
+    }
   },
 
   setTaskStatus: async (taskId, status) => {
-    await api.setTaskStatus(taskId, status);
+    let newProgress = get().tasks[taskId]?.progress || 0;
+    if (status === "done") newProgress = 100;
+    else if (status === "todo") newProgress = 0;
+    else if (status === "in_progress" && newProgress === 0) newProgress = 10;
+    set((s) => ({
+      tasks: {
+        ...s.tasks,
+        [taskId]: { ...s.tasks[taskId], status, progress: newProgress },
+      },
+    }));
+    const { activity } = await api.setTaskStatus(taskId, status);
+    if (activity) {
+      set((s) => ({
+        activities: { ...s.activities, [activity.activityId]: activity },
+      }));
+    }
   },
 
   setTaskProgress: async (taskId, progress) => {
-    await api.setTaskProgress(taskId, progress);
+    const current = get().tasks[taskId];
+    if (!current) return;
+    const clamped = Math.max(0, Math.min(100, Math.round(progress)));
+    let newStatus = current.status;
+    if (clamped >= 100 && newStatus !== "done") newStatus = "done";
+    else if (clamped > 0 && clamped < 100 && newStatus === "todo") newStatus = "in_progress";
+    else if (clamped < 100 && newStatus === "done") newStatus = "in_progress";
+    set((s) => ({
+      tasks: {
+        ...s.tasks,
+        [taskId]: { ...s.tasks[taskId], progress: clamped, status: newStatus },
+      },
+    }));
+    const { activity } = await api.setTaskProgress(taskId, clamped);
+    if (activity) {
+      set((s) => ({
+        activities: { ...s.activities, [activity.activityId]: activity },
+      }));
+    }
   },
 
   assignTask: async (taskId, memberId) => {
+    set((s) => ({
+      tasks: { ...s.tasks, [taskId]: { ...s.tasks[taskId], assigneeId: memberId } },
+    }));
     await api.updateTask(taskId, { assigneeId: memberId });
   },
 
   archiveTask: async (taskId) => {
+    set((s) => ({
+      tasks: { ...s.tasks, [taskId]: { ...s.tasks[taskId], archived: true } },
+    }));
     await api.updateTask(taskId, { archived: true });
   },
 
   restoreTask: async (taskId) => {
+    set((s) => ({
+      tasks: { ...s.tasks, [taskId]: { ...s.tasks[taskId], archived: false } },
+    }));
     await api.updateTask(taskId, { archived: false });
   },
 
   deleteTask: async (taskId) => {
+    set((s) => {
+      const tasks = { ...s.tasks };
+      delete tasks[taskId];
+      return { tasks };
+    });
     await api.deleteTask(taskId);
   },
 
   // 备注
   addNote: async (taskId, content) => {
-    await api.addNote(taskId, content);
+    const { note, activity } = await api.addNote(taskId, content);
+    set((s) => ({
+      notes: { ...s.notes, [note.noteId]: note },
+      activities: { ...s.activities, [activity.activityId]: activity },
+    }));
   },
 
   // 私信
@@ -273,7 +340,10 @@ export const useTodoStore = create<TodoState>((set, get) => ({
   },
 
   sendDM: async (receiverId, content) => {
-    await api.sendMessage(receiverId, content);
+    const me = get().currentMemberId;
+    if (!me) return;
+    const { message } = await api.sendMessage(receiverId, content);
+    set((s) => ({ messages: { ...s.messages, [message.messageId]: message } }));
   },
 
   markConversationRead: async (peerId) => {
