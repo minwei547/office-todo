@@ -9,15 +9,20 @@ import type {
   Task,
   TaskStatus,
   Team,
+  User,
 } from "@/types";
-import { api, getMemberId, setMemberId } from "@/lib/api";
+import {
+  api,
+  getMemberId,
+  setMemberId,
+  setUserId,
+} from "@/lib/api";
 import { socket } from "@/lib/socket";
 
-// 仅持久化"本机身份记忆"，团队/任务等数据由后端实时拉取
+// 仅持久化"本机身份记忆"（userId + 上次团队），团队/任务等数据由后端实时拉取
 interface SessionState {
-  memberId: string | null;
-  teamId: string | null;
-  nickname: string;
+  userId: string | null;
+  lastTeamId: string | null;
 }
 
 interface TodoState {
@@ -33,26 +38,27 @@ interface TodoState {
   loading: boolean;
   error: string | null;
 
+  // 认证
+  user: User | null;
+  myTeams: Array<Team & { myMemberId: string; myNickname: string }>;
+  authLoading: boolean;
+
   // 初始化
   initFromSession: () => Promise<void>;
   refreshTeam: (teamId: string) => Promise<void>;
   setLoading: (b: boolean) => void;
   setError: (e: string | null) => void;
 
+  // 认证
+  register: (username: string, password: string, nickname: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => void;
+  loadMyTeams: () => Promise<void>;
+  enterTeam: (teamId: string, memberId: string) => Promise<void>;
+
   // 团队 / 成员
-  createTeam: (
-    teamName: string,
-    nickname: string,
-  ) => Promise<{ teamId: string; memberId: string; inviteCode: string }>;
-  joinTeam: (
-    inviteCode: string,
-    nickname: string,
-  ) => Promise<{ teamId: string; memberId: string }>;
-  recoverMember: (
-    inviteCode: string,
-    nickname: string,
-  ) => Promise<{ teamId: string; memberId: string }>;
-  switchTeam: (teamId: string) => Promise<void>;
+  createTeam: (teamName: string, nickname: string) => Promise<void>;
+  joinTeam: (inviteCode: string, nickname: string) => Promise<void>;
   renameTeam: (teamId: string, name: string) => Promise<void>;
   updateNickname: (nickname: string) => Promise<void>;
 
@@ -87,17 +93,13 @@ interface TodoState {
 
   // 导出
   exportJSON: () => Promise<string>;
-
-  // 登出
-  signOut: () => void;
 }
 
-// 持久化本机会话（仅 memberId / teamId / nickname）
+// 持久化本机会话（仅 userId / lastTeamId）
 const sessionPersist = persist<SessionState>(
   (set) => ({
-    memberId: null,
-    teamId: null,
-    nickname: "",
+    userId: null,
+    lastTeamId: null,
   }),
   {
     name: "office-todo-session",
@@ -118,30 +120,45 @@ export const useTodoStore = create<TodoState>((set, get) => ({
   loading: false,
   error: null,
 
+  user: null,
+  myTeams: [],
+  authLoading: false,
+
   initFromSession: async () => {
     const session = useSessionStore.getState();
-    if (!session.memberId) {
+    if (!session.userId) {
       set({ loading: false });
       return;
     }
-    setMemberId(session.memberId);
-    set({ currentMemberId: session.memberId });
-    if (session.teamId) {
-      try {
-        await get().refreshTeam(session.teamId);
-        socket.connect(session.teamId);
-        // 恢复私信列表
+    setUserId(session.userId);
+    try {
+      // 获取用户加入的团队
+      const { teams } = await api.getMyTeams(session.userId);
+      if (teams.length === 0) {
+        // 已登录但没有团队
+        set({ user: { userId: session.userId, username: "", nickname: "" }, loading: false });
+        return;
+      }
+      set({ myTeams: teams, user: { userId: session.userId, username: "", nickname: "" } });
+      // 进入上次团队
+      const lastTeamId = session.lastTeamId;
+      const team = lastTeamId ? teams.find((t) => t.teamId === lastTeamId) : teams[0];
+      if (team) {
+        setMemberId(team.myMemberId);
+        set({ currentMemberId: team.myMemberId });
+        await get().refreshTeam(team.teamId);
+        socket.connect(team.teamId);
         try {
           await get().refreshConversations();
         } catch {
           // 私信加载失败不影响主流程
         }
-      } catch {
-        useSessionStore.setState({ memberId: null, teamId: null });
-        setMemberId(null);
-        set({ currentMemberId: null, currentTeamId: null, team: null });
       }
+    } catch {
+      useSessionStore.setState({ userId: null, lastTeamId: null });
+      setUserId(null);
     }
+    set({ loading: false });
   },
 
   refreshTeam: async (teamId) => {
@@ -175,59 +192,84 @@ export const useTodoStore = create<TodoState>((set, get) => ({
   setLoading: (b) => set({ loading: b }),
   setError: (e) => set({ error: e }),
 
-  createTeam: async (teamName, nickname) => {
-    const result = await api.createTeam(teamName, nickname);
-    setMemberId(result.memberId);
-    useSessionStore.setState({
-      memberId: result.memberId,
-      teamId: result.teamId,
-      nickname,
-    });
-    set({ currentMemberId: result.memberId, currentTeamId: result.teamId });
-    await get().refreshTeam(result.teamId);
-    socket.connect(result.teamId);
-    return result;
+  // 认证
+  register: async (username, password, nickname) => {
+    const result = await api.register(username, password, nickname);
+    setUserId(result.userId);
+    useSessionStore.setState({ userId: result.userId, lastTeamId: null });
+    set({ user: result, myTeams: [] });
   },
 
-  joinTeam: async (inviteCode, nickname) => {
-    const result = await api.joinTeam(inviteCode, nickname);
-    setMemberId(result.memberId);
-    useSessionStore.setState({
-      memberId: result.memberId,
-      teamId: result.teamId,
-      nickname,
-    });
-    set({ currentMemberId: result.memberId, currentTeamId: result.teamId });
-    await get().refreshTeam(result.teamId);
-    socket.connect(result.teamId);
-    return result;
+  login: async (username, password) => {
+    const result = await api.login(username, password);
+    setUserId(result.userId);
+    useSessionStore.setState({ userId: result.userId });
+    set({ user: result });
+    await get().loadMyTeams();
   },
 
-  recoverMember: async (inviteCode, nickname) => {
-    const result = await api.recoverMember(inviteCode, nickname);
-    setMemberId(result.memberId);
-    useSessionStore.setState({
-      memberId: result.memberId,
-      teamId: result.teamId,
-      nickname,
+  logout: () => {
+    socket.disconnect();
+    useSessionStore.setState({ userId: null, lastTeamId: null });
+    setUserId(null);
+    setMemberId(null);
+    set({
+      user: null,
+      myTeams: [],
+      currentMemberId: null,
+      currentTeamId: null,
+      team: null,
+      members: {},
+      tasks: {},
+      activities: {},
+      notes: {},
+      messages: {},
     });
-    set({ currentMemberId: result.memberId, currentTeamId: result.teamId });
-    await get().refreshTeam(result.teamId);
-    socket.connect(result.teamId);
+  },
+
+  loadMyTeams: async () => {
+    const me = get().user;
+    if (!me) return;
+    const { teams } = await api.getMyTeams(me.userId);
+    set({ myTeams: teams });
+  },
+
+  enterTeam: async (teamId, memberId) => {
+    socket.disconnect();
+    setMemberId(memberId);
+    useSessionStore.setState({ lastTeamId: teamId });
+    set({ currentMemberId: memberId, currentTeamId: teamId });
+    await get().refreshTeam(teamId);
+    socket.connect(teamId);
     try {
       await get().refreshConversations();
     } catch {
       // 私信加载失败不影响主流程
     }
-    return result;
   },
 
-  switchTeam: async (teamId) => {
-    socket.disconnect();
-    useSessionStore.setState({ teamId });
-    set({ currentTeamId: teamId });
-    await get().refreshTeam(teamId);
-    socket.connect(teamId);
+  createTeam: async (teamName, nickname) => {
+    const me = get().user;
+    if (!me) throw new Error("请先登录");
+    const result = await api.createTeam(teamName, nickname, me.userId);
+    setMemberId(result.memberId);
+    useSessionStore.setState({ lastTeamId: result.teamId });
+    set({ currentMemberId: result.memberId, currentTeamId: result.teamId });
+    await get().refreshTeam(result.teamId);
+    socket.connect(result.teamId);
+    await get().loadMyTeams();
+  },
+
+  joinTeam: async (inviteCode, nickname) => {
+    const me = get().user;
+    if (!me) throw new Error("请先登录");
+    const result = await api.joinTeam(inviteCode, nickname, me.userId);
+    setMemberId(result.memberId);
+    useSessionStore.setState({ lastTeamId: result.teamId });
+    set({ currentMemberId: result.memberId, currentTeamId: result.teamId });
+    await get().refreshTeam(result.teamId);
+    socket.connect(result.teamId);
+    await get().loadMyTeams();
   },
 
   renameTeam: async (teamId, name) => {
@@ -244,7 +286,6 @@ export const useTodoStore = create<TodoState>((set, get) => ({
         [cur]: { ...s.members[cur], nickname },
       },
     }));
-    useSessionStore.setState({ nickname });
     await api.updateNickname(cur, nickname);
   },
 
@@ -493,22 +534,6 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     if (!teamId) return "{}";
     const data = await api.exportTeam(teamId);
     return JSON.stringify(data, null, 2);
-  },
-
-  signOut: () => {
-    socket.disconnect();
-    useSessionStore.setState({ memberId: null, teamId: null, nickname: "" });
-    setMemberId(null);
-    set({
-      currentMemberId: null,
-      currentTeamId: null,
-      team: null,
-      members: {},
-      tasks: {},
-      activities: {},
-      notes: {},
-      messages: {},
-    });
   },
 }));
 

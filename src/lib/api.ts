@@ -1,6 +1,7 @@
 import { supabase } from "./supabase";
 
 const MEMBER_KEY = "office-todo-member-id";
+const USER_KEY = "office-todo-user-id";
 
 export function getMemberId(): string | null {
   return localStorage.getItem(MEMBER_KEY);
@@ -9,6 +10,25 @@ export function getMemberId(): string | null {
 export function setMemberId(id: string | null) {
   if (id) localStorage.setItem(MEMBER_KEY, id);
   else localStorage.removeItem(MEMBER_KEY);
+}
+
+export function getUserId(): string | null {
+  return localStorage.getItem(USER_KEY);
+}
+
+export function setUserId(id: string | null) {
+  if (id) localStorage.setItem(USER_KEY, id);
+  else localStorage.removeItem(USER_KEY);
+}
+
+// 密码哈希：SHA-256 + 固定盐（前端直连 Supabase，无后端）
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "office-todo-salt-2024");
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -60,7 +80,69 @@ async function getMember(): Promise<any> {
 }
 
 export const api = {
-  async createTeam(teamName: string, nickname: string) {
+  // 注册
+  async register(username: string, password: string, nickname: string) {
+    const user = username.trim();
+    const nick = nickname.trim();
+    if (!user || !password || !nick) throw new Error("账号、密码、昵称都必填");
+    if (user.length < 2) throw new Error("账号至少 2 个字符");
+    if (password.length < 4) throw new Error("密码至少 4 位");
+    // 检查用户名是否已存在
+    const { data: existing } = await supabase
+      .from("users")
+      .select("userId")
+      .eq("username", user)
+      .maybeSingle();
+    if (existing) throw new Error("该账号已注册");
+    const userId = shortId("u");
+    const passwordHash = await hashPassword(password);
+    const now = Date.now();
+    const { error } = await supabase.from("users").insert([
+      { userId, username: user, passwordHash, nickname: nick, createdAt: now },
+    ]);
+    if (error) throw new Error(error.message);
+    return { userId, username: user, nickname: nick };
+  },
+
+  // 登录
+  async login(username: string, password: string) {
+    const user = username.trim();
+    if (!user || !password) throw new Error("账号和密码必填");
+    const passwordHash = await hashPassword(password);
+    const { data: u, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("username", user)
+      .eq("passwordHash", passwordHash)
+      .single();
+    if (error || !u) throw new Error("账号或密码错误");
+    return { userId: u.userId, username: u.username, nickname: u.nickname };
+  },
+
+  // 获取用户加入的所有团队
+  async getMyTeams(userId: string) {
+    const { data: myMembers } = await supabase
+      .from("members")
+      .select("memberId, teamId, nickname")
+      .eq("userId", userId);
+    if (!myMembers || myMembers.length === 0) return { teams: [] };
+    const teamIds = myMembers.map((m) => m.teamId);
+    const { data: teams } = await supabase
+      .from("teams")
+      .select("*")
+      .in("teamId", teamIds);
+    // 把 memberId 关联到 team 上
+    const memberByTeam = new Map(myMembers.map((m) => [m.teamId, m]));
+    return {
+      teams: (teams || []).map((t: any) => ({
+        ...t,
+        myMemberId: memberByTeam.get(t.teamId)?.memberId,
+        myNickname: memberByTeam.get(t.teamId)?.nickname,
+      })),
+    };
+  },
+
+  async createTeam(teamName: string, nickname: string, userId: string) {
     if (!teamName.trim() || !nickname.trim()) throw new Error("teamName 与 nickname 必填");
     const teamId = shortId("t");
     const memberId = shortId("m");
@@ -71,13 +153,13 @@ export const api = {
     ]);
     if (e1) throw new Error(e1.message);
     const { error: e2 } = await supabase.from("members").insert([
-      { memberId, teamId, nickname: nickname.trim(), avatarChar: avatarCharFrom(nickname), joinedAt: now },
+      { memberId, teamId, nickname: nickname.trim(), avatarChar: avatarCharFrom(nickname), joinedAt: now, userId },
     ]);
     if (e2) throw new Error(e2.message);
     return { teamId, memberId, inviteCode };
   },
 
-  async joinTeam(inviteCode: string, nickname: string) {
+  async joinTeam(inviteCode: string, nickname: string, userId: string) {
     if (!inviteCode.trim() || !nickname.trim()) throw new Error("inviteCode 与 nickname 必填");
     const { data: team, error } = await supabase
       .from("teams")
@@ -88,29 +170,10 @@ export const api = {
     const memberId = shortId("m");
     const now = Date.now();
     const { error: e2 } = await supabase.from("members").insert([
-      { memberId, teamId: team.teamId, nickname: nickname.trim(), avatarChar: avatarCharFrom(nickname), joinedAt: now },
+      { memberId, teamId: team.teamId, nickname: nickname.trim(), avatarChar: avatarCharFrom(nickname), joinedAt: now, userId },
     ]);
     if (e2) throw new Error(e2.message);
     return { teamId: team.teamId, memberId };
-  },
-
-  // 跨设备恢复身份：用邀请码+昵称找回已有成员
-  async recoverMember(inviteCode: string, nickname: string) {
-    if (!inviteCode.trim() || !nickname.trim()) throw new Error("inviteCode 与 nickname 必填");
-    const { data: team, error } = await supabase
-      .from("teams")
-      .select("*")
-      .eq("inviteCode", inviteCode.trim().toUpperCase())
-      .single();
-    if (error || !team) throw new Error("邀请码无效");
-    const { data: member } = await supabase
-      .from("members")
-      .select("*")
-      .eq("teamId", team.teamId)
-      .eq("nickname", nickname.trim())
-      .single();
-    if (!member) throw new Error("未找到该昵称的成员，请确认昵称无误");
-    return { teamId: team.teamId, memberId: member.memberId };
   },
 
   async getTeam(teamId: string) {

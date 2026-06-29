@@ -3,6 +3,8 @@ import { TeamBar } from "@/components/layout/TeamBar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TaskArea } from "@/components/layout/TaskArea";
 import { OnboardingModal } from "@/components/team/OnboardingModal";
+import { AuthModal } from "@/components/team/AuthModal";
+import { TeamPicker } from "@/components/team/TeamPicker";
 import { TeamSettingDrawer } from "@/components/team/TeamSettingDrawer";
 import { ShareTeamModal } from "@/components/team/ShareTeamModal";
 import { TaskDetailDrawer } from "@/components/task/TaskDetailDrawer";
@@ -14,11 +16,14 @@ import { socket } from "@/lib/socket";
 
 export default function Home() {
   const team = useTodoStore(selectCurrentTeam);
+  const user = useTodoStore((s) => s.user);
   const loading = useTodoStore((s) => s.loading);
   const error = useTodoStore((s) => s.error);
   const initFromSession = useTodoStore((s) => s.initFromSession);
   const applyServerEvent = useTodoStore((s) => s.applyServerEvent);
   const setOnboarding = useUIStore((s) => s.setOnboarding);
+  const setAuthModal = useUIStore((s) => s.setAuthModal);
+  const setTeamPicker = useUIStore((s) => s.setTeamPicker);
   const shareTeamOpen = useUIStore((s) => s.shareTeamOpen);
   const setShareTeam = useUIStore((s) => s.setShareTeam);
 
@@ -38,10 +43,23 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // team 变化时控制 onboarding
+  // 用户 / 团队状态变化时控制弹窗
   useEffect(() => {
-    setOnboarding(!team);
-  }, [team, setOnboarding]);
+    if (!user) {
+      setAuthModal(true);
+      setOnboarding(false);
+      setTeamPicker(false);
+    } else {
+      setAuthModal(false);
+      if (!team) {
+        setTeamPicker(true);
+        setOnboarding(false);
+      } else {
+        setTeamPicker(false);
+        setOnboarding(false);
+      }
+    }
+  }, [user, team, setAuthModal, setOnboarding, setTeamPicker]);
 
   if (loading && !team) {
     return (
@@ -71,6 +89,8 @@ export default function Home() {
       ) : null}
 
       {/* 全局抽屉 / 弹窗 */}
+      <AuthModal />
+      <TeamPicker />
       <OnboardingModal />
       <TeamSettingDrawer />
       <TaskDetailDrawer />

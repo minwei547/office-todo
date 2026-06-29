@@ -44,6 +44,16 @@ interface UIState {
   // 分享团队弹窗（邀请码 + 二维码）
   shareTeamOpen: boolean;
   setShareTeam: (open: boolean) => void;
+
+  // 认证弹窗（登录 / 注册）
+  authModalOpen: boolean;
+  setAuthModal: (open: boolean) => void;
+  authTab: "login" | "register";
+  setAuthTab: (tab: "login" | "register") => void;
+
+  // 团队选择弹窗
+  teamPickerOpen: boolean;
+  setTeamPicker: (open: boolean) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -73,4 +83,10 @@ export const useUIStore = create<UIState>((set) => ({
   setOnboarding: (open) => set({ onboardingOpen: open }),
   shareTeamOpen: false,
   setShareTeam: (open) => set({ shareTeamOpen: open }),
+  authModalOpen: false,
+  setAuthModal: (open) => set({ authModalOpen: open }),
+  authTab: "login",
+  setAuthTab: (tab) => set({ authTab: tab }),
+  teamPickerOpen: false,
+  setTeamPicker: (open) => set({ teamPickerOpen: open }),
 }));

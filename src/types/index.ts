@@ -1,3 +1,10 @@
+// 用户账号：跨设备身份
+export interface User {
+  userId: string;
+  username: string;
+  nickname: string;
+}
+
 // 任务状态：待办 / 进行中 / 已完成
 export type TaskStatus = "todo" | "in_progress" | "done";
 
@@ -18,6 +25,7 @@ export interface Member {
   nickname: string;
   avatarChar: string; // 昵称首字
   joinedAt: number;
+  userId?: string | null; // 关联用户账号
 }
 
 export interface Task {

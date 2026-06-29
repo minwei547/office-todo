@@ -3,6 +3,15 @@
 -- 在 Supabase SQL Editor 中执行此脚本
 -- ============================================
 
+-- 0. 用户账号表（跨设备身份）
+CREATE TABLE IF NOT EXISTS users (
+  userId TEXT PRIMARY KEY,
+  username TEXT UNIQUE NOT NULL,
+  passwordHash TEXT NOT NULL,
+  nickname TEXT NOT NULL,
+  createdAt BIGINT NOT NULL
+);
+
 -- 1. 团队表
 CREATE TABLE IF NOT EXISTS teams (
   teamId TEXT PRIMARY KEY,
@@ -20,6 +29,9 @@ CREATE TABLE IF NOT EXISTS members (
   avatarChar TEXT NOT NULL DEFAULT '?',
   joinedAt BIGINT NOT NULL
 );
+
+-- 2.1 给已有 members 表补充 userId 列（关联用户账号，可空以兼容历史数据）
+ALTER TABLE members ADD COLUMN IF NOT EXISTS userId TEXT;
 
 -- 3. 任务表
 CREATE TABLE IF NOT EXISTS tasks (
@@ -73,6 +85,8 @@ CREATE TABLE IF NOT EXISTS messages (
 -- 索引
 -- ============================================
 CREATE INDEX IF NOT EXISTS idx_members_teamId ON members(teamId);
+CREATE INDEX IF NOT EXISTS idx_members_userId ON members(userId);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_tasks_teamId ON tasks(teamId);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_activities_taskId ON activities(taskId);
@@ -94,6 +108,13 @@ ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+-- users 表：允许 anon 全部操作（前端直连，安全性由应用层校验）
+CREATE POLICY "anon_all_users" ON users
+  FOR ALL TO anon
+  USING (true)
+  WITH CHECK (true);
 
 -- teams 表：允许 anon 全部操作
 CREATE POLICY "anon_all_teams" ON teams
@@ -134,5 +155,5 @@ CREATE POLICY "anon_all_messages" ON messages
 -- 完成提示
 DO $$
 BEGIN
-  RAISE NOTICE '✅ 建表完成！共创建 6 张表 + 8 个索引 + 6 条 RLS 策略';
+  RAISE NOTICE '✅ 建表完成！共创建 7 张表 + 10 个索引 + 7 条 RLS 策略';
 END $$;

@@ -5,6 +5,7 @@ import {
   RefreshCw,
   Settings,
   Share2,
+  Shuffle,
 } from "lucide-react";
 import { Button, IconButton } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
@@ -22,16 +23,23 @@ export function TeamBar() {
   const unread = useTodoStore(selectUnreadCount);
   const refreshTeam = useTodoStore((s) => s.refreshTeam);
   const currentTeamId = useTodoStore((s) => s.currentTeamId);
-  const signOut = useTodoStore((s) => s.signOut);
+  const user = useTodoStore((s) => s.user);
+  const myTeams = useTodoStore((s) => s.myTeams);
+  const logout = useTodoStore((s) => s.logout);
   const setTeamDrawer = useUIStore((s) => s.setTeamDrawer);
   const setOnboarding = useUIStore((s) => s.setOnboarding);
   const setDMDrawer = useUIStore((s) => s.setDMDrawer);
   const setHelpDrawer = useUIStore((s) => s.setHelpDrawer);
   const setShareTeam = useUIStore((s) => s.setShareTeam);
+  const setTeamPicker = useUIStore((s) => s.setTeamPicker);
 
   function handleRefresh() {
     if (currentTeamId) refreshTeam(currentTeamId);
   }
+
+  // 显示昵称：优先账号昵称，回退到当前团队成员昵称
+  const displayName = user?.nickname || member?.nickname || "";
+  const displayChar = member?.avatarChar || displayName.slice(0, 1) || "?";
 
   return (
     <header className="relative flex items-center gap-3 px-5 h-14 bg-slate-50 border-b border-slate-300/15">
@@ -63,10 +71,19 @@ export function TeamBar() {
             <span className="hidden sm:inline">邀请同事</span>
             <span className="sm:hidden">邀请</span>
           </Button>
+          {myTeams.length > 1 ? (
+            <IconButton
+              onClick={() => setTeamPicker(true)}
+              aria-label="切换团队"
+              title="切换团队"
+            >
+              <Shuffle size={16} />
+            </IconButton>
+          ) : null}
           <div className="hidden sm:flex items-center gap-1.5 pl-2 border-l border-slate-300/10">
-            <Avatar char={member.avatarChar} size="sm" />
+            <Avatar char={displayChar} size="sm" />
             <span className="text-[13px] text-slate-900/80 font-medium">
-              {member.nickname}
+              {displayName}
             </span>
           </div>
           <IconButton
@@ -105,10 +122,10 @@ export function TeamBar() {
           </IconButton>
           <IconButton
             onClick={() => {
-              if (confirm("确定要退出当前团队吗？退出后需重新加入。")) signOut();
+              if (confirm("确定要登出当前账号吗？")) logout();
             }}
-            aria-label="退出团队"
-            title="退出团队"
+            aria-label="登出账号"
+            title="登出账号"
           >
             <LogOut size={16} />
           </IconButton>
@@ -122,13 +139,15 @@ export function TeamBar() {
           >
             <HelpCircle size={18} />
           </IconButton>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setOnboarding(true)}
-          >
-            加入 / 创建团队
-          </Button>
+          {user ? (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setOnboarding(true)}
+            >
+              创建 / 加入团队
+            </Button>
+          ) : null}
         </div>
       )}
     </header>

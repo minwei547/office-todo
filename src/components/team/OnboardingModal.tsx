@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, Plus, Users, X, RotateCcw } from "lucide-react";
+import { ArrowRight, Plus, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/Button";
 import { TextInput } from "@/components/ui/Field";
 import { useTodoStore } from "@/store/todoStore";
 import { useUIStore } from "@/store/uiStore";
 
-type Tab = "create" | "join" | "recover";
+type Tab = "create" | "join";
 
 export function OnboardingModal() {
   const open = useUIStore((s) => s.onboardingOpen);
@@ -14,7 +14,6 @@ export function OnboardingModal() {
 
   const createTeam = useTodoStore((s) => s.createTeam);
   const joinTeam = useTodoStore((s) => s.joinTeam);
-  const recoverMember = useTodoStore((s) => s.recoverMember);
 
   const [tab, setTab] = useState<Tab>("create");
   const [nickname, setNickname] = useState("");
@@ -70,7 +69,7 @@ export function OnboardingModal() {
         setOpen(false);
         setNickname("");
         setTeamName("");
-      } else if (tab === "join") {
+      } else {
         const code = inviteCode.trim().toUpperCase();
         if (code.length !== 6) {
           setError("邀请码为 6 位字符");
@@ -78,18 +77,6 @@ export function OnboardingModal() {
           return;
         }
         await joinTeam(code, nick);
-        setOpen(false);
-        setNickname("");
-        setInviteCode("");
-      } else {
-        // recover
-        const code = inviteCode.trim().toUpperCase();
-        if (code.length !== 6) {
-          setError("邀请码为 6 位字符");
-          setSubmitting(false);
-          return;
-        }
-        await recoverMember(code, nick);
         setOpen(false);
         setNickname("");
         setInviteCode("");
@@ -142,12 +129,6 @@ export function OnboardingModal() {
             onClick={() => setTab("join")}
             icon={<Users size={14} />}
             label="加入团队"
-          />
-          <TabButton
-            active={tab === "recover"}
-            onClick={() => setTab("recover")}
-            icon={<RotateCcw size={14} />}
-            label="找回身份"
           />
         </div>
 
@@ -207,9 +188,7 @@ export function OnboardingModal() {
                 className="w-full bg-slate-50 border border-slate-300 px-3 h-12 text-[20px] tracking-[0.5em] font-mono font-medium text-center text-slate-900 placeholder:text-slate-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/40"
               />
               <p className="text-[11px] text-slate-400 mt-1">
-                {tab === "recover"
-                  ? "输入你之前加入团队时用的昵称和邀请码，可在新设备上恢复身份"
-                  : "向团队所有者索取 6 位邀请码"}
+                向团队所有者索取 6 位邀请码
               </p>
             </div>
           )}
@@ -232,9 +211,7 @@ export function OnboardingModal() {
               ? "处理中…"
               : tab === "create"
                 ? "创建并进入团队"
-                : tab === "join"
-                  ? "加入团队"
-                  : "恢复身份并进入"}
+                : "加入团队"}
           </Button>
 
           <p className="text-center text-[12px] text-slate-400">
