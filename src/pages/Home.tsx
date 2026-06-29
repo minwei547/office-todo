@@ -5,11 +5,12 @@ import { TaskArea } from "@/components/layout/TaskArea";
 import { OnboardingModal } from "@/components/team/OnboardingModal";
 import { AuthModal } from "@/components/team/AuthModal";
 import { TeamPicker } from "@/components/team/TeamPicker";
-import { TeamSettingDrawer } from "@/components/team/TeamSettingDrawer";
 import { ShareTeamModal } from "@/components/team/ShareTeamModal";
+import { TeamSettingDrawer } from "@/components/team/TeamSettingDrawer";
 import { TaskDetailDrawer } from "@/components/task/TaskDetailDrawer";
 import { DMDrawer } from "@/components/dm/DMDrawer";
 import { HelpDrawer } from "@/components/help/HelpDrawer";
+import { NotifyDrawer } from "@/components/notify/NotifyDrawer";
 import { useTodoStore, selectCurrentTeam } from "@/store/todoStore";
 import { useUIStore } from "@/store/uiStore";
 import { socket } from "@/lib/socket";
@@ -24,6 +25,7 @@ export default function Home() {
   const setOnboarding = useUIStore((s) => s.setOnboarding);
   const setAuthModal = useUIStore((s) => s.setAuthModal);
   const setTeamPicker = useUIStore((s) => s.setTeamPicker);
+  const setDMDrawer = useUIStore((s) => s.setDMDrawer);
   const shareTeamOpen = useUIStore((s) => s.shareTeamOpen);
   const setShareTeam = useUIStore((s) => s.setShareTeam);
 
@@ -40,6 +42,21 @@ export default function Home() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 通知点击：聚焦窗口并打开对应抽屉
+  useEffect(() => {
+    const onOpenDM = () => setDMDrawer(true);
+    const onOpenTasks = () => {
+      // 任务区已在主视图，仅聚焦窗口即可
+      window.focus();
+    };
+    window.addEventListener("app:open-dm", onOpenDM);
+    window.addEventListener("app:open-tasks", onOpenTasks);
+    return () => {
+      window.removeEventListener("app:open-dm", onOpenDM);
+      window.removeEventListener("app:open-tasks", onOpenTasks);
+    };
+  }, [setDMDrawer]);
 
   useEffect(() => {
     if (!user) {
@@ -98,6 +115,7 @@ export default function Home() {
       <TaskDetailDrawer />
       <DMDrawer />
       <HelpDrawer />
+      <NotifyDrawer />
       <ShareTeamModal
         open={shareTeamOpen}
         onClose={() => setShareTeam(false)}

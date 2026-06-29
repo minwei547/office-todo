@@ -27,6 +27,10 @@ interface UIState {
   teamDrawerOpen: boolean;
   setTeamDrawer: (open: boolean) => void;
 
+  // 通知设置抽屉
+  notifyDrawerOpen: boolean;
+  setNotifyDrawer: (open: boolean) => void;
+
   // 私信抽屉
   dmDrawerOpen: boolean;
   setDMDrawer: (open: boolean) => void;
@@ -73,6 +77,8 @@ export const useUIStore = create<UIState>((set) => ({
   closeTask: () => set({ selectedTaskId: null }),
   teamDrawerOpen: false,
   setTeamDrawer: (open) => set({ teamDrawerOpen: open }),
+  notifyDrawerOpen: false,
+  setNotifyDrawer: (open) => set({ notifyDrawerOpen: open }),
   dmDrawerOpen: false,
   setDMDrawer: (open) => set({ dmDrawerOpen: open }),
   dmPeerId: null,

@@ -25,3 +25,10 @@ Thumbs.db
 # Supabase
 supabase/.temp/
 supabase/.supabase/
+
+# Capacitor 原生工程（本地构建用，不入库；可由 `npx cap add ios/android` 重新生成）
+ios/
+android/
+
+# PWA 生成产物（由 vite-plugin-pwa 在 build 时生成）
+dev-dist/

@@ -18,6 +18,7 @@ import {
   setUserId,
 } from "@/lib/api";
 import { socket } from "@/lib/socket";
+import { notifyAssigned, notifyDM, notifyTaskUpdated } from "@/lib/notify";
 
 // 仅持久化"本机身份记忆"（userId + 上次团队），团队/任务等数据由后端实时拉取
 interface SessionState {
@@ -193,6 +194,9 @@ export const useTodoStore = create<TodoState>((set, get) => ({
   refreshTeam: async (teamId) => {
     set({ loading: true, error: null });
     try {
+      // 快照刷新前的任务状态，用于检测新增指派/状态变化以触发通知
+      const before = get().tasks;
+      const meId = get().currentMemberId;
       const { team, members } = await api.getTeam(teamId);
       const { tasks, activities, notes } = await api.getTeamTasks(teamId);
       const membersMap: Record<string, Member> = {};
@@ -212,6 +216,10 @@ export const useTodoStore = create<TodoState>((set, get) => ({
         currentTeamId: teamId,
         loading: false,
       });
+      // 通知检测：对比前后差异
+      if (meId) {
+        detectTaskNotifications(before, tasksMap, membersMap, meId);
+      }
     } catch (e: any) {
       set({ loading: false, error: e.message ?? "加载失败" });
       throw e;
@@ -470,6 +478,8 @@ export const useTodoStore = create<TodoState>((set, get) => ({
 
   // 私信
   refreshConversations: async () => {
+    const me = get().currentMemberId;
+    const before = get().messages;
     const { conversations } = await api.getConversations();
     // 用 conversations 的 lastMessage 拼出已知消息（足够列表显示）
     // 完整对话通过 refreshConversation 拉取
@@ -478,6 +488,10 @@ export const useTodoStore = create<TodoState>((set, get) => ({
       messagesMap[c.lastMessage.messageId] = c.lastMessage;
     }
     set((s) => ({ messages: { ...s.messages, ...messagesMap } }));
+    // 通知检测：找出之前没有的新消息（且是发给我的、非自己发送的）
+    if (me) {
+      detectDMNotifications(before, messagesMap, get().members, me);
+    }
   },
 
   refreshConversation: async (peerId) => {
@@ -720,3 +734,76 @@ export function selectUnreadCount(state: TodoState): number {
     (m) => m.receiverId === me && !m.read,
   ).length;
 }
+
+// ── 通知检测辅助：对比刷新前后的数据，找出新增/变更项 ─────────────
+
+// 防止初次加载/切换团队时把全部历史任务当成"新"通知：
+// 只有当 before 不为空（即非首次加载）且消息时间戳晚于"加入时间窗"才通知
+function isInitLoad(before: Record<string, any>): boolean {
+  return Object.keys(before).length === 0;
+}
+
+// 检测任务相关变更并触发通知
+function detectTaskNotifications(
+  before: Record<string, Task>,
+  after: Record<string, Task>,
+  members: Record<string, Member>,
+  meId: string,
+) {
+  // 首次加载不弹通知（避免历史任务刷屏）
+  if (isInitLoad(before)) return;
+  const now = Date.now();
+  // 5 分钟时间窗：只通知近 5 分钟内的变更（轮询周期 5s，避免漏报）
+  const RECENT = 5 * 60 * 1000;
+  for (const [id, t] of Object.entries(after)) {
+    const old = before[id];
+    if (!old) {
+      // 新建任务：仅当指派给我时通知
+      if (t.assigneeId === meId && now - t.createdAt < RECENT) {
+        notifyAssigned(t.title);
+      }
+      continue;
+    }
+    // 指派变化：从未指派/指派给别人 → 指派给我
+    if (old.assigneeId !== meId && t.assigneeId === meId) {
+      const actor = findActorName(members, t.updatedAt);
+      notifyAssigned(t.title, actor);
+    }
+    // 我负责的任务状态变化
+    if (t.assigneeId === meId && old.status !== t.status) {
+      const statusLabel = { todo: "待办", in_progress: "进行中", done: "已完成" }[t.status] ?? t.status;
+      notifyTaskUpdated(t.title, `状态变更为「${statusLabel}」`);
+    }
+  }
+}
+
+// 从 members 中找一个简单的 actor 名（用于指派人展示）。
+// 当前 schema 没记录每条变更的 actorId 关联到昵称，这里就近返回队长或空。
+function findActorName(_members: Record<string, Member>, _ts: number): string | undefined {
+  // 简化：不查 actor，返回 undefined（通知里不显示指派人）
+  return undefined;
+}
+
+// 检测私信新增并触发通知
+function detectDMNotifications(
+  before: Record<string, DirectMessage>,
+  after: Record<string, DirectMessage>,
+  members: Record<string, Member>,
+  meId: string,
+) {
+  if (isInitLoad(before)) return;
+  const now = Date.now();
+  const RECENT = 5 * 60 * 1000;
+  for (const [id, m] of Object.entries(after)) {
+    if (before[id]) continue; // 已知消息，跳过
+    // 只通知发给我的、非自己发的、近 5 分钟内的消息
+    if (m.receiverId !== meId) continue;
+    if (m.senderId === meId) continue;
+    if (now - m.timestamp > RECENT) continue;
+    const sender = members[m.senderId];
+    const senderName = sender?.nickname ?? "新消息";
+    const preview = m.kind === "image" ? "[图片]" : m.content;
+    notifyDM(senderName, preview);
+  }
+}
+

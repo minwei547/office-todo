@@ -1,4 +1,5 @@
 import {
+  Bell,
   LogOut,
   MessageSquare,
   HelpCircle,
@@ -27,6 +28,7 @@ export function TeamBar() {
   const myTeams = useTodoStore((s) => s.myTeams);
   const logout = useTodoStore((s) => s.logout);
   const setTeamDrawer = useUIStore((s) => s.setTeamDrawer);
+  const setNotifyDrawer = useUIStore((s) => s.setNotifyDrawer);
   const setOnboarding = useUIStore((s) => s.setOnboarding);
   const setDMDrawer = useUIStore((s) => s.setDMDrawer);
   const setHelpDrawer = useUIStore((s) => s.setHelpDrawer);
@@ -111,6 +113,13 @@ export function TeamBar() {
             title="刷新数据"
           >
             <RefreshCw size={16} />
+          </IconButton>
+          <IconButton
+            onClick={() => setNotifyDrawer(true)}
+            aria-label="通知设置"
+            title="通知设置"
+          >
+            <Bell size={18} />
           </IconButton>
           <IconButton
             onClick={() => setTeamDrawer(true)}
