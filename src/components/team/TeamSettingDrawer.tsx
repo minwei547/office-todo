@@ -104,7 +104,7 @@ export function TeamSettingDrawer() {
               if (e.key === "Enter") saveTeamName();
               if (e.key === "Escape") setEditingTeam(false);
             }}
-            className="w-full bg-transparent border-b border-blue-600 focus:outline-none"
+            className="w-full bg-transparent border-b border-accent focus:outline-none"
           />
         ) : (
           <div className="flex items-center gap-2">
@@ -115,7 +115,7 @@ export function TeamSettingDrawer() {
                   setTeamNameDraft(team.teamName);
                   setEditingTeam(true);
                 }}
-                className="text-muted hover:text-slate-900"
+                className="text-muted hover:text-ink"
                 aria-label="重命名团队"
               >
                 <Pencil size={13} />
@@ -154,7 +154,7 @@ export function TeamSettingDrawer() {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <span className="font-sans text-[18px] text-slate-900">
+                <span className="font-sans text-[18px] text-ink">
                   {member.nickname}
                 </span>
                 <button
@@ -162,7 +162,7 @@ export function TeamSettingDrawer() {
                     setNickDraft(member.nickname);
                     setEditingNick(true);
                   }}
-                  className="text-muted hover:text-slate-900"
+                  className="text-muted hover:text-ink"
                   aria-label="修改昵称"
                 >
                   <Pencil size={12} />
@@ -188,15 +188,15 @@ export function TeamSettingDrawer() {
           {teamMembers.map((m) => (
             <li
               key={m.memberId}
-              className="flex items-center justify-between gap-2 px-2 py-1.5 hover:bg-chip/40 rounded-lg"
+              className="flex items-center justify-between gap-2 px-2 py-1.5 hover:bg-white/[0.04] rounded-lg"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <Avatar char={m.avatarChar} size="sm" />
-                <span className="text-[13px] text-slate-900/85 truncate">
+                <span className="text-[13px] text-ink/85 truncate">
                   {m.nickname}
                 </span>
                 {team.ownerId === m.memberId ? (
-                  <span className="flex items-center gap-0.5 mono-meta text-blue-600">
+                  <span className="flex items-center gap-0.5 mono-meta text-accent-soft">
                     <Shield size={10} /> owner
                   </span>
                 ) : null}

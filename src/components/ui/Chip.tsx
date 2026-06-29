@@ -26,8 +26,8 @@ export function Chip({
         "inline-flex items-center gap-1.5 h-6 px-2 text-[11px] font-medium border rounded-lg transition-colors",
         interactive && "cursor-pointer focus-ring",
         active
-          ? "bg-ink text-white border-slate-300"
-          : "bg-chip/60 text-slate-900/75 border-slate-300/15 hover:border-slate-300/35",
+          ? "bg-accent/15 text-accent-soft border-accent/40"
+          : "bg-white/[0.04] text-ink/70 border-white/[0.08] hover:border-white/[0.18] hover:text-ink",
         className,
       )}
     >

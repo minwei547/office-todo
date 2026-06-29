@@ -111,22 +111,22 @@ export function DMDrawer() {
       <button
         aria-label="关闭"
         onClick={() => setOpen(false)}
-        className="absolute inset-0 bg-ink/30 backdrop-blur-[1px] animate-[fade-up_200ms_ease-out]"
+        className="absolute inset-0 bg-black/60 backdrop-blur-[2px] animate-[fade-up_200ms_ease-out]"
       />
-      <div className="absolute right-0 top-0 h-full w-[460px] max-w-[94vw] bg-slate-50 border-l border-slate-300/15 shadow-lift flex flex-col animate-slide-in">
+      <div className="absolute right-0 top-0 h-full w-[460px] max-w-[94vw] bg-bg-soft/95 border-l border-white/[0.08] shadow-lift flex flex-col animate-slide-in backdrop-blur-xl">
         {/* 头部 */}
-        <header className="flex items-center justify-between gap-3 px-5 h-14 border-b border-slate-300/10">
+        <header className="flex items-center justify-between gap-3 px-5 h-14 border-b border-white/[0.06]">
           {peer ? (
             <>
               <button
                 onClick={() => setPeer(null)}
-                className="text-muted hover:text-slate-900 flex items-center gap-1 text-[12px]"
+                className="text-muted hover:text-ink flex items-center gap-1 text-[12px]"
               >
                 <ArrowLeft size={14} /> 返回
               </button>
               <div className="flex items-center gap-2 min-w-0">
                 <Avatar char={peer.avatarChar} size="sm" />
-                <span className="font-sans text-[16px] truncate">
+                <span className="font-sans text-[16px] text-ink truncate">
                   {peer.nickname}
                 </span>
               </div>
@@ -134,8 +134,8 @@ export function DMDrawer() {
           ) : (
             <>
               <div className="flex items-center gap-2">
-                <MessageSquare size={16} className="text-blue-600" />
-                <h2 className="font-sans text-[18px]">私信</h2>
+                <MessageSquare size={16} className="text-accent-soft" />
+                <h2 className="font-sans text-[18px] text-ink">私信</h2>
               </div>
               <IconButton onClick={() => setOpen(false)} aria-label="关闭">
                 <X size={18} />
@@ -149,7 +149,7 @@ export function DMDrawer() {
           <>
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
               {conversationMessages.length === 0 ? (
-                <div className="text-center text-[13px] text-muted/70 italic py-12">
+                <div className="text-center text-[13px] text-dim italic py-12">
                   还没有对话，发送第一条消息吧。
                 </div>
               ) : (
@@ -171,10 +171,10 @@ export function DMDrawer() {
                       />
                       <div
                         className={cn(
-                          "max-w-[78%] px-3 py-2 text-[13px] leading-relaxed rounded-[4px] border",
+                          "max-w-[78%] px-3 py-2 text-[13px] leading-relaxed rounded-lg border",
                           mine
-                            ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-chip/60 text-slate-900 border-slate-300/15",
+                            ? "bg-accent-gradient text-white border-accent/40 shadow-glow"
+                            : "bg-white/[0.04] text-ink border-white/[0.08]",
                         )}
                       >
                         <p className="whitespace-pre-wrap break-words">
@@ -195,7 +195,7 @@ export function DMDrawer() {
               )}
             </div>
             {/* 输入条 */}
-            <div className="px-4 py-3 border-t border-slate-300/10 bg-chip/30">
+            <div className="px-4 py-3 border-t border-white/[0.06] bg-white/[0.02]">
               <div className="flex items-end gap-2">
                 <textarea
                   value={draft}
@@ -208,12 +208,12 @@ export function DMDrawer() {
                   }}
                   rows={1}
                   placeholder="输入消息，回车发送，Shift+回车换行"
-                  className="flex-1 bg-slate-50 border border-slate-300/20 px-3 py-2 text-[13px] resize-none rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-accent/40 max-h-32"
+                  className="flex-1 bg-white/[0.04] border border-white/[0.10] px-3 py-2 text-[13px] text-ink placeholder:text-muted/70 resize-none rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/40 max-h-32"
                 />
                 <IconButton
                   onClick={submit}
                   aria-label="发送"
-                  className="h-9 w-9 bg-blue-600 text-white hover:bg-blue-600/90 border-blue-600"
+                  className="h-9 w-9 bg-accent-gradient text-white hover:shadow-glow border-accent/40"
                 >
                   <Send size={15} />
                 </IconButton>
@@ -225,7 +225,7 @@ export function DMDrawer() {
           <div className="flex-1 overflow-y-auto">
             {/* 已有会话 */}
             {conversations.length > 0 ? (
-              <section className="px-5 py-4 border-b border-slate-300/10">
+              <section className="px-5 py-4 border-b border-white/[0.05]">
                 <h3 className="text-[11px] font-medium uppercase tracking-wider text-muted mb-2">
                   最近会话
                 </h3>
@@ -237,7 +237,7 @@ export function DMDrawer() {
                       <li key={c.peerId}>
                         <button
                           onClick={() => setPeer(c.peerId)}
-                          className="w-full flex items-center gap-3 px-2 py-2 hover:bg-chip/40 rounded-lg text-left"
+                          className="w-full flex items-center gap-3 px-2 py-2 hover:bg-white/[0.04] rounded-lg text-left"
                         >
                           <Avatar
                             char={peerMember.avatarChar}
@@ -245,7 +245,7 @@ export function DMDrawer() {
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2">
-                              <span className="text-[13px] font-medium text-slate-900 truncate">
+                              <span className="text-[13px] font-medium text-ink truncate">
                                 {peerMember.nickname}
                               </span>
                               <span className="mono-meta shrink-0">
@@ -282,11 +282,11 @@ export function DMDrawer() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="搜索成员…"
-                  className="w-full h-8 pl-7 pr-3 text-[12px] bg-chip/40 border border-slate-300/15 rounded-lg focus:outline-none focus:border-blue-600"
+                  className="w-full h-8 pl-7 pr-3 text-[12px] bg-white/[0.04] border border-white/[0.10] rounded-lg focus:outline-none focus:border-accent text-ink placeholder:text-muted/70"
                 />
               </div>
               {filtered.length === 0 ? (
-                <div className="text-[12px] text-muted/70 italic py-2">
+                <div className="text-[12px] text-dim italic py-2">
                   没有匹配的成员
                 </div>
               ) : (
@@ -300,11 +300,11 @@ export function DMDrawer() {
                       <li key={m.memberId}>
                         <button
                           onClick={() => setPeer(m.memberId)}
-                          className="w-full flex items-center gap-3 px-2 py-2 hover:bg-chip/40 rounded-lg text-left"
+                          className="w-full flex items-center gap-3 px-2 py-2 hover:bg-white/[0.04] rounded-lg text-left"
                         >
                           <Avatar char={m.avatarChar} size="md" />
                           <div className="flex-1 min-w-0">
-                            <div className="text-[13px] font-medium text-slate-900 truncate">
+                            <div className="text-[13px] font-medium text-ink truncate">
                               {m.nickname}
                             </div>
                             <div className="mono-meta">

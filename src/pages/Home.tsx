@@ -63,9 +63,12 @@ export default function Home() {
 
   if (loading && !team) {
     return (
-      <div className="h-screen grid place-items-center">
+      <div className="h-screen grid place-items-center grid-bg">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-slate-300/20 border-t-blue-600 rounded-full animate-spin mx-auto mb-3" />
+          <div className="relative w-12 h-12 mx-auto mb-4">
+            <div className="absolute inset-0 rounded-full bg-accent-gradient blur-md animate-glow-pulse" />
+            <div className="absolute inset-0 rounded-full border-2 border-white/10 border-t-accent animate-spin" />
+          </div>
           <p className="mono-meta">正在连接团队…</p>
         </div>
       </div>
@@ -73,17 +76,24 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col h-full min-h-screen bg-slate-50">
-      <TeamBar />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <TaskArea />
-        </main>
+    <div className="relative flex flex-col h-full min-h-screen">
+      {/* 网格底纹层 */}
+      <div className="pointer-events-none absolute inset-0 grid-bg opacity-50" />
+      {/* 顶部渐变光带 */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-accent-gradient opacity-60" />
+
+      <div className="relative z-10 flex flex-col h-full">
+        <TeamBar />
+        <div className="flex flex-1 overflow-hidden">
+          <Sidebar />
+          <main className="flex-1 flex flex-col overflow-hidden">
+            <TaskArea />
+          </main>
+        </div>
       </div>
 
       {error ? (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-lift text-[12px]">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 px-4 py-2 bg-accent-gradient text-white rounded-lg shadow-glow text-[12px]">
           {error}
         </div>
       ) : null}

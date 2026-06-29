@@ -1,9 +1,9 @@
-import { Check, Circle, Loader2, MessageCircle } from "lucide-react";
+import { Check, Circle, Loader2, Lock, MessageCircle } from "lucide-react";
 import type { Task } from "@/types";
 import { Avatar } from "@/components/ui/Avatar";
 import { PriorityBadge } from "@/components/ui/Badge";
 import { ProgressBar } from "./ProgressBar";
-import { useTodoStore } from "@/store/todoStore";
+import { useTodoStore, selectIsOwner } from "@/store/todoStore";
 import { useUIStore } from "@/store/uiStore";
 import { describeDueDate } from "@/lib/date";
 import { cn } from "@/lib/utils";
@@ -16,8 +16,8 @@ interface TaskCardProps {
 
 const DUE_TONE_CLASS = {
   neutral: "text-muted",
-  warn: "text-blue-600",
-  danger: "text-blue-600 font-semibold",
+  warn: "text-warning",
+  danger: "text-danger font-semibold",
   done: "text-success",
 } as const;
 
@@ -25,6 +25,8 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
   const members = useTodoStore((s) => s.members);
   const notes = useTodoStore((s) => s.notes);
   const activities = useTodoStore((s) => s.activities);
+  const currentMemberId = useTodoStore((s) => s.currentMemberId);
+  const isOwner = useTodoStore(selectIsOwner);
   const setTaskStatus = useTodoStore((s) => s.setTaskStatus);
   const openTask = useUIStore((s) => s.openTask);
 
@@ -37,13 +39,18 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
     (a) => a.taskId === task.taskId,
   ).length;
 
+  // 权限：队长可改全部，队员仅可改分配给自己的任务
+  const canEdit = isOwner || task.assigneeId === currentMemberId;
+
   function toggleDone(e: React.MouseEvent) {
     e.stopPropagation();
+    if (!canEdit) return;
     setTaskStatus(task.taskId, task.status === "done" ? "todo" : "done");
   }
 
   function cycleStatus(e: React.MouseEvent) {
     e.stopPropagation();
+    if (!canEdit) return;
     const next =
       task.status === "todo"
         ? "in_progress"
@@ -62,30 +69,34 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
         onClick={() => openTask(task.taskId)}
         style={{ animationDelay: `${Math.min(index * 30, 240)}ms` }}
         className={cn(
-          "group relative bg-slate-50 border border-slate-300/15 hover:border-slate-300/40 hover:shadow-paper rounded-lg p-3 cursor-pointer transition-all animate-fade-up",
+          "group relative bg-white/[0.04] border border-white/[0.08] hover:border-accent/40 hover:bg-white/[0.07] hover:shadow-glow rounded-lg p-3 cursor-pointer transition-all animate-fade-up",
           isDone && "opacity-60",
         )}
       >
         {/* 优先级色条 */}
         <span
           className={cn(
-            "absolute left-0 top-0 bottom-0 w-1",
-            task.priority === "urgent" && "bg-blue-600",
-            task.priority === "high" && "bg-blue-600/70",
-            task.priority === "medium" && "bg-ink/30",
-            task.priority === "low" && "bg-ink/15",
+            "absolute left-0 top-0 bottom-0 w-1 rounded-l-lg",
+            task.priority === "urgent" && "bg-danger",
+            task.priority === "high" && "bg-violet",
+            task.priority === "medium" && "bg-accent/50",
+            task.priority === "low" && "bg-white/15",
           )}
         />
         <div className="flex items-start gap-2 pl-1">
           <button
-            onClick={cycleStatus}
-            className="mt-0.5 shrink-0 text-muted hover:text-blue-600"
+            onClick={canEdit ? cycleStatus : undefined}
+            disabled={!canEdit}
+            className={cn(
+              "mt-0.5 shrink-0",
+              canEdit ? "text-muted hover:text-accent-soft" : "text-dim cursor-not-allowed",
+            )}
             aria-label="切换状态"
           >
             {isDone ? (
               <Check size={16} className="text-success" />
             ) : isInProgress ? (
-              <Loader2 size={16} className="text-blue-600 animate-spin" />
+              <Loader2 size={16} className="text-accent-soft animate-spin" />
             ) : (
               <Circle size={16} />
             )}
@@ -93,7 +104,7 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
           <div className="min-w-0 flex-1">
             <h3
               className={cn(
-                "font-sans text-[15px] leading-snug text-slate-900",
+                "font-sans text-[15px] leading-snug text-ink",
                 isDone && "line-through text-muted",
               )}
             >
@@ -109,7 +120,7 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
                 {task.tags.map((t) => (
                   <span
                     key={t}
-                    className="text-[10px] text-muted bg-chip/70 px-1.5 h-4 inline-flex items-center rounded-lg"
+                    className="text-[10px] text-accent-soft bg-accent/10 px-1.5 h-4 inline-flex items-center rounded-lg"
                   >
                     #{t}
                   </span>
@@ -146,6 +157,11 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
                 <MessageCircle size={11} /> {noteCount}
               </span>
             ) : null}
+            {!canEdit ? (
+              <span title="只读任务" className="text-dim">
+                <Lock size={11} />
+              </span>
+            ) : null}
             {assignee ? (
               <Avatar char={assignee.avatarChar} size="xs" title={assignee.nickname} />
             ) : null}
@@ -161,20 +177,23 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
       onClick={() => openTask(task.taskId)}
       style={{ animationDelay: `${Math.min(index * 24, 200)}ms` }}
       className={cn(
-        "group grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3.5 py-2.5 border-b border-slate-300/8 hover:bg-chip/40 cursor-pointer transition-colors animate-fade-up",
+        "group grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3.5 py-2.5 border-b border-white/[0.05] last:border-b-0 hover:bg-white/[0.04] cursor-pointer transition-colors animate-fade-up",
         isDone && "opacity-55",
       )}
     >
       {/* 完成勾选 */}
       <button
-        onClick={toggleDone}
+        onClick={canEdit ? toggleDone : undefined}
+        disabled={!canEdit}
+        aria-label={isDone ? "标记为待办" : "标记为完成"}
         className={cn(
           "h-5 w-5 shrink-0 grid place-items-center rounded-full border transition-colors",
           isDone
             ? "bg-success border-success text-white"
-            : "border-slate-300/30 hover:border-blue-600 hover:text-blue-600",
+            : canEdit
+              ? "border-white/[0.20] hover:border-accent hover:text-accent-soft"
+              : "border-white/[0.10] text-dim cursor-not-allowed",
         )}
-        aria-label={isDone ? "标记为待办" : "标记为完成"}
       >
         {isDone ? <Check size={12} /> : null}
       </button>
@@ -182,11 +201,11 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           {isInProgress ? (
-            <Loader2 size={12} className="text-blue-600 animate-spin shrink-0" />
+            <Loader2 size={12} className="text-accent-soft animate-spin shrink-0" />
           ) : null}
           <h3
             className={cn(
-              "font-sans text-[15px] text-slate-900 truncate",
+              "font-sans text-[15px] text-ink truncate",
               isDone && "line-through text-muted",
             )}
           >
@@ -238,7 +257,7 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
             </span>
           </div>
         ) : (
-          <span className="text-[11px] text-muted/70 italic">未指派</span>
+          <span className="text-[11px] text-dim italic">未指派</span>
         )}
       </div>
     </article>

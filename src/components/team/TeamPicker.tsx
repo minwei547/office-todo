@@ -45,101 +45,114 @@ export function TeamPicker() {
       <button
         aria-label="关闭"
         onClick={() => setOpen(false)}
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] animate-[fade-up_200ms_ease-out]"
+        className="absolute inset-0 bg-black/70 backdrop-blur-md animate-[fade-up_200ms_ease-out]"
       />
-      <div className="relative w-full max-w-[460px] bg-white border border-slate-200 shadow-lift rounded-lg overflow-hidden animate-fade-up">
-        {/* 头部 */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-200">
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 grid place-items-center bg-blue-600 text-white rounded-lg">
-              <Users size={15} />
+      <div className="relative w-full max-w-[460px] bg-bg-soft/90 border border-white/[0.10] shadow-lift rounded-xl overflow-hidden animate-fade-up backdrop-blur-xl">
+        {/* 顶部光带 */}
+        <div className="absolute inset-x-0 top-0 h-px bg-accent-gradient opacity-80" />
+        {/* 渐变光晕 */}
+        <div className="pointer-events-none absolute -top-20 -right-20 w-60 h-60 rounded-full bg-accent/15 blur-3xl" />
+
+        <div className="relative">
+          {/* 头部 */}
+          <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-white/[0.06]">
+            <div className="flex items-center gap-2">
+              <div className="relative h-7 w-7">
+                <div className="absolute inset-0 rounded-lg bg-accent-gradient opacity-60 blur-[4px]" />
+                <div className="relative h-7 w-7 grid place-items-center bg-accent-gradient text-white rounded-lg">
+                  <Users size={15} />
+                </div>
+              </div>
+              <h2 className="biz-title text-[18px] text-ink">我的团队</h2>
             </div>
-            <h2 className="biz-title text-[18px] text-slate-900">我的团队</h2>
+            <IconButton onClick={() => setOpen(false)} aria-label="关闭">
+              <X size={18} />
+            </IconButton>
           </div>
-          <IconButton onClick={() => setOpen(false)} aria-label="关闭">
-            <X size={18} />
-          </IconButton>
-        </div>
 
-        {/* 团队列表 */}
-        <div className="p-3 max-h-[320px] overflow-y-auto">
-          {myTeams.length === 0 ? (
-            <div className="px-3 py-10 text-center">
-              <p className="text-[13px] text-slate-500">
-                你还没有加入任何团队
-              </p>
-              <p className="text-[12px] text-slate-400 mt-1">
-                创建一个团队或使用邀请码加入
-              </p>
-            </div>
-          ) : (
-            <ul className="space-y-1">
-              {myTeams.map((t) => {
-                const isActive = t.teamId === currentTeamId;
-                return (
-                  <li key={t.teamId}>
-                    <button
-                      onClick={() => handleEnter(t.teamId, t.myMemberId)}
-                      className={`w-full flex items-center gap-3 px-3 h-14 rounded-lg text-left transition-colors border ${
-                        isActive
-                          ? "bg-blue-50 border-blue-200"
-                          : "bg-slate-50 border-transparent hover:bg-slate-100 hover:border-slate-200"
-                      }`}
-                    >
-                      <div className="h-9 w-9 shrink-0 grid place-items-center bg-ink text-white rounded-lg">
-                        <span className="font-sans font-semibold text-[14px]">
-                          {Array.from(t.teamName || "?")[0] ?? "?"}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[14px] font-medium text-slate-900 truncate">
-                            {t.teamName}
-                          </span>
-                          {isActive ? (
-                            <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 bg-blue-100 rounded">
-                              当前
+          {/* 团队列表 */}
+          <div className="p-3 max-h-[320px] overflow-y-auto">
+            {myTeams.length === 0 ? (
+              <div className="px-3 py-10 text-center">
+                <p className="text-[13px] text-muted">
+                  你还没有加入任何团队
+                </p>
+                <p className="text-[12px] text-dim mt-1">
+                  创建一个团队或使用邀请码加入
+                </p>
+              </div>
+            ) : (
+              <ul className="space-y-1">
+                {myTeams.map((t) => {
+                  const isActive = t.teamId === currentTeamId;
+                  return (
+                    <li key={t.teamId}>
+                      <button
+                        onClick={() => handleEnter(t.teamId, t.myMemberId)}
+                        className={`w-full flex items-center gap-3 px-3 h-14 rounded-lg text-left transition-all border ${
+                          isActive
+                            ? "bg-accent/10 border-accent/40 shadow-glow"
+                            : "bg-white/[0.03] border-transparent hover:bg-white/[0.06] hover:border-white/[0.12]"
+                        }`}
+                      >
+                        <div className="relative h-9 w-9 shrink-0">
+                          <div className="absolute inset-0 rounded-lg bg-accent-gradient opacity-40 blur-[3px]" />
+                          <div className="relative h-9 w-9 grid place-items-center bg-accent-gradient text-white rounded-lg">
+                            <span className="font-sans font-semibold text-[14px]">
+                              {Array.from(t.teamName || "?")[0] ?? "?"}
                             </span>
-                          ) : null}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[12px] text-slate-500 truncate">
-                            身份：{t.myNickname || "—"}
-                          </span>
-                          <span className="mono-meta text-slate-400">
-                            · {t.inviteCode}
-                          </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[14px] font-medium text-ink truncate">
+                              {t.teamName}
+                            </span>
+                            {isActive ? (
+                              <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-medium text-accent-soft bg-accent/15 border border-accent/30 rounded">
+                                当前
+                              </span>
+                            ) : null}
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[12px] text-muted truncate">
+                              身份：{t.myNickname || "—"}
+                            </span>
+                            <span className="mono-meta text-dim">
+                              · {t.inviteCode}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <ArrowRight size={15} className="shrink-0 text-slate-400" />
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
+                        <ArrowRight size={15} className="shrink-0 text-dim" />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
 
-        {/* 底部操作 */}
-        <div className="flex gap-2 px-6 py-4 border-t border-slate-200 bg-slate-50">
-          <Button
-            variant="secondary"
-            size="md"
-            className="flex-1"
-            onClick={handleCreate}
-            leadingIcon={<Plus size={15} />}
-          >
-            创建新团队
-          </Button>
-          <Button
-            variant="primary"
-            size="md"
-            className="flex-1"
-            onClick={handleCreate}
-            leadingIcon={<LogIn size={15} />}
-          >
-            加入团队
-          </Button>
+          {/* 底部操作 */}
+          <div className="flex gap-2 px-6 py-4 border-t border-white/[0.06] bg-white/[0.02]">
+            <Button
+              variant="secondary"
+              size="md"
+              className="flex-1"
+              onClick={handleCreate}
+              leadingIcon={<Plus size={15} />}
+            >
+              创建新团队
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              className="flex-1"
+              onClick={handleCreate}
+              leadingIcon={<LogIn size={15} />}
+            >
+              加入团队
+            </Button>
+          </div>
         </div>
       </div>
     </div>

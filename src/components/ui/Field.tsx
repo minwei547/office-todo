@@ -26,7 +26,7 @@ export function Field({ label, hint, children, className }: FieldProps) {
 }
 
 const controlClass =
-  "w-full bg-slate-50 border border-slate-300/20 px-3 h-9 text-[13px] text-slate-900 placeholder:text-muted/70 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-accent/40 transition-colors";
+  "w-full bg-white/[0.04] border border-white/[0.10] px-3 h-9 text-[13px] text-ink placeholder:text-muted/70 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/40 transition-colors disabled:opacity-60 disabled:cursor-not-allowed";
 
 export function TextInput(
   props: React.InputHTMLAttributes<HTMLInputElement>,

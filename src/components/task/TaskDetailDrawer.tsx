@@ -22,6 +22,8 @@ import { ProgressBar } from "./ProgressBar";
 import {
   useTodoStore,
   selectCurrentMember,
+  selectIsOwner,
+  makeSelectCanEditTask,
 } from "@/store/todoStore";
 import { useUIStore } from "@/store/uiStore";
 import type { Priority, TaskStatus } from "@/types";
@@ -58,6 +60,8 @@ export function TaskDetailDrawer() {
   const notes = useTodoStore((s) => s.notes);
   const activities = useTodoStore((s) => s.activities);
   const currentMember = useTodoStore(selectCurrentMember);
+  const isOwner = useTodoStore(selectIsOwner);
+  const canEdit = useTodoStore(makeSelectCanEditTask(selectedTaskId));
   const updateTask = useTodoStore((s) => s.updateTask);
   const setTaskStatus = useTodoStore((s) => s.setTaskStatus);
   const setTaskProgress = useTodoStore((s) => s.setTaskProgress);
@@ -147,7 +151,7 @@ export function TaskDetailDrawer() {
       open={!!selectedTaskId}
       onClose={closeTask}
       title={
-        editingTitle ? (
+        editingTitle && canEdit ? (
           <input
             key={`title-${task.taskId}`}
             autoFocus
@@ -157,21 +161,32 @@ export function TaskDetailDrawer() {
               if (e.key === "Enter") e.currentTarget.blur();
               if (e.key === "Escape") setEditingTitle(false);
             }}
-            className="w-full bg-transparent border-b border-blue-600 focus:outline-none"
+            className="w-full bg-transparent border-b border-accent focus:outline-none"
           />
-        ) : (
+        ) : canEdit ? (
           <button
             onClick={() => setEditingTitle(true)}
             className="text-left focus-ring rounded-lg -mx-1 px-1"
           >
             {task.title}
           </button>
+        ) : (
+          <span className="text-left">{task.title}</span>
         )
       }
-      subtitle={`#${task.taskId.slice(-6)} · 创建于 ${relativeTime(task.createdAt)}`}
+      subtitle={
+        <>
+          <span>#{task.taskId.slice(-6)} · 创建于 {relativeTime(task.createdAt)}</span>
+          {!canEdit ? (
+            <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-white/[0.06] text-muted border border-white/[0.10]">
+              只读
+            </span>
+          ) : null}
+        </>
+      }
       footer={
         <div className="flex items-center gap-2">
-          {task.archived ? (
+          {canEdit && task.archived ? (
             <Button
               variant="secondary"
               size="sm"
@@ -180,7 +195,7 @@ export function TaskDetailDrawer() {
             >
               恢复
             </Button>
-          ) : (
+          ) : canEdit && !task.archived ? (
             <Button
               variant="secondary"
               size="sm"
@@ -192,21 +207,23 @@ export function TaskDetailDrawer() {
             >
               归档
             </Button>
-          )}
+          ) : null}
           <div className="flex-1" />
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => {
-              if (confirm("确定删除该任务？该操作不可撤销。")) {
-                deleteTask(task.taskId);
-                closeTask();
-              }
-            }}
-            leadingIcon={<Trash2 size={13} />}
-          >
-            删除
-          </Button>
+          {isOwner ? (
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => {
+                if (confirm("确定删除该任务？该操作不可撤销。")) {
+                  deleteTask(task.taskId);
+                  closeTask();
+                }
+              }}
+              leadingIcon={<Trash2 size={13} />}
+            >
+              删除
+            </Button>
+          ) : null}
         </div>
       }
     >
@@ -218,16 +235,17 @@ export function TaskDetailDrawer() {
             return (
               <button
                 key={s}
-                onClick={() => setTaskStatus(task.taskId, s)}
+                disabled={!canEdit}
+                onClick={() => canEdit && setTaskStatus(task.taskId, s)}
                 className={`flex-1 flex items-center justify-center gap-1.5 h-9 text-[12px] font-medium border rounded-lg transition-colors ${
                   active
                     ? s === "done"
                       ? "bg-success text-white border-success"
                       : s === "in_progress"
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-ink text-white border-slate-300"
-                    : "bg-slate-50 text-muted border-slate-300/15 hover:border-slate-300/35"
-                }`}
+                        ? "bg-accent-gradient text-white border-accent/40"
+                        : "bg-accent/15 text-accent-soft border-accent/40"
+                    : "bg-white/[0.04] text-muted border-white/[0.08] hover:border-white/[0.18]"
+                }${canEdit ? "" : " opacity-60 cursor-not-allowed"}`}
               >
                 {STATUS_ICON[s]}
                 {STATUS_LABEL[s]}
@@ -239,7 +257,7 @@ export function TaskDetailDrawer() {
           <StatusBadge status={task.status} />
           <PriorityBadge priority={task.priority} />
           {task.archived ? (
-            <span className="mono-meta text-blue-600">已归档</span>
+            <span className="mono-meta text-accent-soft">已归档</span>
           ) : null}
         </div>
       </section>
@@ -250,7 +268,7 @@ export function TaskDetailDrawer() {
           <span className="text-[11px] font-medium uppercase tracking-wider text-muted">
             完成进度
           </span>
-          <span className="font-mono text-[14px] font-semibold tabular-nums text-slate-900">
+          <span className="font-mono text-[14px] font-semibold tabular-nums text-ink">
             {task.progress}%
           </span>
         </div>
@@ -265,8 +283,9 @@ export function TaskDetailDrawer() {
           max={100}
           step={5}
           value={task.progress}
+          disabled={!canEdit}
           onChange={(e) =>
-            setTaskProgress(task.taskId, Number(e.target.value))
+            canEdit && setTaskProgress(task.taskId, Number(e.target.value))
           }
           className="w-full h-1.5 accent-accent cursor-pointer"
           aria-label="调整进度"
@@ -275,12 +294,13 @@ export function TaskDetailDrawer() {
           {[0, 25, 50, 75, 100].map((p) => (
             <button
               key={p}
-              onClick={() => setTaskProgress(task.taskId, p)}
+              disabled={!canEdit}
+              onClick={() => canEdit && setTaskProgress(task.taskId, p)}
               className={`flex-1 h-6 text-[11px] font-mono border rounded-lg transition-colors ${
                 task.progress === p
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-chip/50 text-muted border-slate-300/15 hover:border-slate-300/35"
-              }`}
+                  ? "bg-accent-gradient text-white border-accent/40"
+                  : "bg-white/[0.04] text-muted border-white/[0.08] hover:border-white/[0.18]"
+              }${canEdit ? "" : " opacity-60 cursor-not-allowed"}`}
             >
               {p}%
             </button>
@@ -297,7 +317,7 @@ export function TaskDetailDrawer() {
         hint={editingDesc ? "失焦保存" : undefined}
         className="mb-5"
       >
-        {editingDesc ? (
+        {editingDesc && canEdit ? (
           <TextArea
             key={`desc-${task.taskId}`}
             autoFocus
@@ -309,17 +329,25 @@ export function TaskDetailDrawer() {
             }}
             placeholder="补充任务背景、要求、参考链接…"
           />
-        ) : (
+        ) : canEdit ? (
           <button
             onClick={() => setEditingDesc(true)}
-            className="w-full text-left min-h-[60px] px-3 py-2 text-[13px] text-slate-900/85 bg-chip/40 border border-slate-300/15 rounded-lg hover:border-slate-300/35 transition-colors focus-ring"
+            className="w-full text-left min-h-[60px] px-3 py-2 text-[13px] text-ink/85 bg-white/[0.04] border border-white/[0.08] rounded-lg hover:border-white/[0.18] transition-colors focus-ring"
           >
             {task.description ? (
               <span className="whitespace-pre-wrap">{task.description}</span>
             ) : (
-              <span className="text-muted/70 italic">点击补充描述…</span>
+              <span className="text-dim italic">点击补充描述…</span>
             )}
           </button>
+        ) : (
+          <div className="w-full text-left min-h-[60px] px-3 py-2 text-[13px] text-ink/85 bg-white/[0.04] border border-white/[0.08] rounded-lg">
+            {task.description ? (
+              <span className="whitespace-pre-wrap">{task.description}</span>
+            ) : (
+              <span className="text-dim italic">暂无描述</span>
+            )}
+          </div>
         )}
       </Field>
 
@@ -328,8 +356,9 @@ export function TaskDetailDrawer() {
         <Field label="负责人">
           <Select
             value={task.assigneeId ?? ""}
+            disabled={!isOwner}
             onChange={(e) =>
-              assignTask(task.taskId, e.target.value || null)
+              isOwner && assignTask(task.taskId, e.target.value || null)
             }
           >
             <option value="">未指派</option>
@@ -352,19 +381,21 @@ export function TaskDetailDrawer() {
             type="date"
             value={task.dueDate ?? ""}
             min={todayISO()}
+            disabled={!canEdit}
             onChange={(e) =>
+              canEdit &&
               updateTask(task.taskId, { dueDate: e.target.value || null })
             }
-            className="w-full bg-slate-50 border border-slate-300/20 px-3 h-9 text-[13px] rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-accent/40"
+            className="w-full bg-bg-soft border border-white/[0.10] px-3 h-9 text-[13px] rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/40 disabled:opacity-60 disabled:cursor-not-allowed"
           />
           <div className="flex items-center gap-1.5 mt-1.5">
             <Calendar size={11} className="text-muted" />
             <span
               className={`text-[11px] font-mono ${
                 due.tone === "danger"
-                  ? "text-blue-600 font-semibold"
+                  ? "text-accent-soft font-semibold"
                   : due.tone === "warn"
-                    ? "text-blue-600"
+                    ? "text-accent-soft"
                     : due.tone === "done"
                       ? "text-success"
                       : "text-muted"
@@ -378,7 +409,9 @@ export function TaskDetailDrawer() {
         <Field label="优先级">
           <Select
             value={task.priority}
+            disabled={!canEdit}
             onChange={(e) =>
+              canEdit &&
               updateTask(task.taskId, { priority: e.target.value as Priority })
             }
           >
@@ -393,7 +426,9 @@ export function TaskDetailDrawer() {
         <Field label="状态">
           <Select
             value={task.status}
+            disabled={!canEdit}
             onChange={(e) =>
+              canEdit &&
               setTaskStatus(task.taskId, e.target.value as TaskStatus)
             }
           >
@@ -412,30 +447,37 @@ export function TaskDetailDrawer() {
           {task.tags.map((t) => (
             <span
               key={t}
-              className="inline-flex items-center gap-1 h-6 px-2 text-[11px] bg-ink text-white rounded-lg"
+              className="inline-flex items-center gap-1 h-6 px-2 text-[11px] bg-accent/15 text-accent-soft border border-accent/30 rounded-lg"
             >
               #{t}
-              <button
-                onClick={() => removeTag(t)}
-                className="hover:text-blue-300"
-                aria-label={`删除标签 ${t}`}
-              >
-                ×
-              </button>
+              {canEdit ? (
+                <button
+                  onClick={() => removeTag(t)}
+                  className="hover:text-accent-soft"
+                  aria-label={`删除标签 ${t}`}
+                >
+                  ×
+                </button>
+              ) : null}
             </span>
           ))}
-          <input
-            value={tagDraft}
-            onChange={(e) => setTagDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addTag();
-              }
-            }}
-            placeholder="输入回车添加"
-            className="h-6 w-28 px-2 text-[11px] bg-chip/60 border border-slate-300/15 rounded-lg focus:outline-none focus:border-blue-600"
-          />
+          {canEdit ? (
+            <input
+              value={tagDraft}
+              onChange={(e) => setTagDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addTag();
+                }
+              }}
+              placeholder="输入回车添加"
+              className="h-6 w-28 px-2 text-[11px] bg-white/[0.04] border border-white/[0.08] rounded-lg focus:outline-none focus:border-accent"
+            />
+          ) : null}
+          {task.tags.length === 0 && !canEdit ? (
+            <span className="text-[12px] text-dim italic">无标签</span>
+          ) : null}
         </div>
       </Field>
 
@@ -445,7 +487,7 @@ export function TaskDetailDrawer() {
           <MessageCircle size={12} /> 备注 ({taskNotes.length})
         </div>
         {taskNotes.length === 0 ? (
-          <div className="text-[12px] text-muted/70 italic py-2">
+          <div className="text-[12px] text-dim italic py-2">
             还没有备注，留下第一条留言吧。
           </div>
         ) : (
@@ -461,12 +503,12 @@ export function TaskDetailDrawer() {
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-[12px] font-medium text-slate-900">
+                      <span className="text-[12px] font-medium text-ink">
                         {author?.nickname ?? "匿名"}
                       </span>
                       <span className="mono-meta">{relativeTime(n.timestamp)}</span>
                     </div>
-                    <p className="text-[13px] text-slate-900/85 whitespace-pre-wrap break-words mt-0.5">
+                    <p className="text-[13px] text-ink/85 whitespace-pre-wrap break-words mt-0.5">
                       {n.content}
                     </p>
                   </div>
@@ -508,9 +550,9 @@ export function TaskDetailDrawer() {
           <Clock size={12} /> 活动记录 ({taskActivities.length})
         </div>
         {taskActivities.length === 0 ? (
-          <div className="text-[12px] text-muted/70 italic">尚无活动记录</div>
+          <div className="text-[12px] text-dim italic">尚无活动记录</div>
         ) : (
-          <ol className="relative pl-4 border-l border-slate-300/15">
+          <ol className="relative pl-4 border-l border-white/[0.08]">
             {taskActivities.map((a) => {
               const actor = members[a.actorId];
               let detail = "";
@@ -532,16 +574,16 @@ export function TaskDetailDrawer() {
               }
               return (
                 <li key={a.activityId} className="relative pb-3 last:pb-0">
-                  <span className="absolute -left-[1.125rem] top-1 h-2 w-2 rounded-full bg-blue-600/60 ring-2 ring-white" />
+                  <span className="absolute -left-[1.125rem] top-1 h-2 w-2 rounded-full bg-accent/60 ring-2 ring-bg-soft" />
                   <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="text-[12px] font-medium text-slate-900">
+                    <span className="text-[12px] font-medium text-ink">
                       {actor?.nickname ?? "匿名"}
                     </span>
                     <span className="text-[12px] text-muted">
                       {ACTIVITY_LABEL[a.type] ?? a.type}
                     </span>
                     {detail ? (
-                      <span className="text-[11px] text-muted/80 italic">
+                      <span className="text-[11px] text-muted italic">
                         {detail}
                       </span>
                     ) : null}
@@ -557,7 +599,7 @@ export function TaskDetailDrawer() {
       </section>
 
       {/* 元信息 foot */}
-      <div className="mt-6 pt-4 border-t border-slate-300/10 grid grid-cols-2 gap-3 mono-meta">
+      <div className="mt-6 pt-4 border-t border-white/[0.06] grid grid-cols-2 gap-3 mono-meta">
         <div className="flex items-center gap-1.5">
           <User size={11} /> 创建者 {members[activities[Object.keys(activities)[0] ?? ""]?.actorId ?? ""]?.nickname ?? "—"}
         </div>

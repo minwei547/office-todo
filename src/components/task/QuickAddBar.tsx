@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Calendar, Flag, Plus, Tag, User } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
-import { useTodoStore, selectCurrentTeam } from "@/store/todoStore";
+import { useTodoStore, selectCurrentTeam, selectIsOwner } from "@/store/todoStore";
 import type { Priority, TaskStatus } from "@/types";
 import { PRIORITY_LABEL } from "@/types";
 import { todayISO } from "@/lib/date";
@@ -26,6 +26,7 @@ const DEFAULT_DRAFT: DraftState = {
 export function QuickAddBar() {
   const team = useTodoStore(selectCurrentTeam);
   const members = useTodoStore((s) => s.members);
+  const isOwner = useTodoStore(selectIsOwner);
   const addTask = useTodoStore((s) => s.addTask);
 
   const [title, setTitle] = useState("");
@@ -71,7 +72,7 @@ export function QuickAddBar() {
     <div className="biz-card rounded-lg">
       {/* 主输入 */}
       <div className="flex items-center gap-2 px-3.5 h-12">
-        <span className="h-5 w-5 shrink-0 grid place-items-center text-blue-600">
+        <span className="h-5 w-5 shrink-0 grid place-items-center text-accent-soft">
           <Plus size={18} />
         </span>
         <input
@@ -89,7 +90,7 @@ export function QuickAddBar() {
             }
           }}
           placeholder="记录一件待办，回车快速创建…"
-          className="flex-1 bg-transparent text-[14px] text-slate-900 placeholder:text-muted/60 focus:outline-none"
+          className="flex-1 bg-transparent text-[14px] text-ink placeholder:text-muted/60 focus:outline-none"
         />
         <Button
           variant="primary"
@@ -103,7 +104,7 @@ export function QuickAddBar() {
 
       {/* 展开态：附加属性 */}
       {expanded ? (
-        <div className="px-3.5 pb-3.5 pt-1 border-t border-slate-300/10 flex flex-wrap items-center gap-2 animate-fade-up">
+        <div className="px-3.5 pb-3.5 pt-1 border-t border-white/[0.06] flex flex-wrap items-center gap-2 animate-fade-up">
           {/* 优先级 */}
           <div className="flex items-center gap-1.5">
             <Flag size={12} className="text-muted" />
@@ -112,7 +113,7 @@ export function QuickAddBar() {
               onChange={(e) =>
                 setDraft((d) => ({ ...d, priority: e.target.value as Priority }))
               }
-              className="h-7 px-2 text-[12px] bg-chip/60 border border-slate-300/15 rounded-lg focus:outline-none focus:border-blue-600"
+              className="h-7 px-2 text-[12px] bg-white/[0.04] border border-white/[0.10] rounded-lg focus:outline-none focus:border-accent text-ink"
             >
               {(Object.keys(PRIORITY_LABEL) as Priority[]).map((p) => (
                 <option key={p} value={p}>
@@ -132,30 +133,36 @@ export function QuickAddBar() {
               onChange={(e) =>
                 setDraft((d) => ({ ...d, dueDate: e.target.value }))
               }
-              className="h-7 px-2 text-[12px] bg-chip/60 border border-slate-300/15 rounded-lg focus:outline-none focus:border-blue-600"
+              className="h-7 px-2 text-[12px] bg-white/[0.04] border border-white/[0.10] rounded-lg focus:outline-none focus:border-accent text-ink"
             />
           </div>
 
-          {/* 负责人 */}
+          {/* 负责人：队长可选指派，队员新建任务自动指派给自己 */}
           <div className="flex items-center gap-1.5">
             <User size={12} className="text-muted" />
-            <select
-              value={draft.assigneeId ?? ""}
-              onChange={(e) =>
-                setDraft((d) => ({
-                  ...d,
-                  assigneeId: e.target.value || null,
-                }))
-              }
-              className="h-7 px-2 text-[12px] bg-chip/60 border border-slate-300/15 rounded-lg focus:outline-none focus:border-blue-600 max-w-[120px]"
-            >
-              <option value="">未指派</option>
-              {teamMembers.map((m) => (
-                <option key={m.memberId} value={m.memberId}>
-                  {m.nickname}
-                </option>
-              ))}
-            </select>
+            {isOwner ? (
+              <select
+                value={draft.assigneeId ?? ""}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    assigneeId: e.target.value || null,
+                  }))
+                }
+                className="h-7 px-2 text-[12px] bg-white/[0.04] border border-white/[0.10] rounded-lg focus:outline-none focus:border-accent max-w-[120px] text-ink"
+              >
+                <option value="">未指派</option>
+                {teamMembers.map((m) => (
+                  <option key={m.memberId} value={m.memberId}>
+                    {m.nickname}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className="inline-flex items-center gap-1 h-7 px-2 text-[12px] bg-accent/10 text-accent-soft border border-accent/30 rounded-lg">
+                指派给我
+              </span>
+            )}
           </div>
 
           {/* 标签 */}
@@ -171,12 +178,12 @@ export function QuickAddBar() {
                 }
               }}
               placeholder="标签"
-              className="h-7 w-20 px-2 text-[12px] bg-chip/60 border border-slate-300/15 rounded-lg focus:outline-none focus:border-blue-600"
+              className="h-7 w-20 px-2 text-[12px] bg-white/[0.04] border border-white/[0.10] rounded-lg focus:outline-none focus:border-accent text-ink"
             />
             {draft.tags.map((t) => (
               <span
                 key={t}
-                className="inline-flex items-center h-6 px-1.5 text-[11px] bg-ink text-white rounded-lg"
+                className="inline-flex items-center h-6 px-1.5 text-[11px] bg-accent/15 text-accent-soft border border-accent/30 rounded-lg"
               >
                 #{t}
               </span>

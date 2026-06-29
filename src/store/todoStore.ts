@@ -108,6 +108,25 @@ const sessionPersist = persist<SessionState>(
 );
 const useSessionStore = create(sessionPersist);
 
+// ── 权限辅助 ────────────────────────────────────────────────
+// 判断当前成员是否为团队队长
+export function isOwnerOf(
+  team: Team | null,
+  currentMemberId: string | null,
+): boolean {
+  return !!(team && currentMemberId && team.ownerId === currentMemberId);
+}
+
+// 权限守卫：队员只能修改分配给自己的任务；队长可修改所有任务
+function assertCanEditTask(state: TodoState, taskId: string) {
+  const task = state.tasks[taskId];
+  if (!task) throw new Error("任务不存在");
+  if (isOwnerOf(state.team, state.currentMemberId)) return;
+  if (task.assigneeId !== state.currentMemberId) {
+    throw new Error("无权修改该任务：仅可修改分配给自己的任务");
+  }
+}
+
 export const useTodoStore = create<TodoState>((set, get) => ({
   currentMemberId: null,
   currentTeamId: null,
@@ -291,7 +310,14 @@ export const useTodoStore = create<TodoState>((set, get) => ({
 
   // 任务
   addTask: async (input) => {
-    const { task, activity } = await api.createTask(input);
+    const state = get();
+    const isOwner = isOwnerOf(state.team, state.currentMemberId);
+    // 队员（非队长）创建任务时，强制将负责人设为自己
+    const finalAssignee = isOwner ? input.assigneeId ?? null : state.currentMemberId;
+    const { task, activity } = await api.createTask({
+      ...input,
+      assigneeId: finalAssignee,
+    });
     set((s) => ({
       tasks: { ...s.tasks, [task.taskId]: task },
       activities: { ...s.activities, [activity.activityId]: activity },
@@ -299,6 +325,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
   },
 
   updateTask: async (taskId, patch) => {
+    assertCanEditTask(get(), taskId);
     set((s) => ({
       tasks: { ...s.tasks, [taskId]: { ...s.tasks[taskId], ...patch } },
     }));
@@ -311,6 +338,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
   },
 
   setTaskStatus: async (taskId, status) => {
+    assertCanEditTask(get(), taskId);
     let newProgress = get().tasks[taskId]?.progress || 0;
     if (status === "done") newProgress = 100;
     else if (status === "todo") newProgress = 0;
@@ -330,6 +358,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
   },
 
   setTaskProgress: async (taskId, progress) => {
+    assertCanEditTask(get(), taskId);
     const current = get().tasks[taskId];
     if (!current) return;
     const clamped = Math.max(0, Math.min(100, Math.round(progress)));
@@ -351,7 +380,12 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     }
   },
 
+  // 指派负责人：仅队长可用
   assignTask: async (taskId, memberId) => {
+    const state = get();
+    if (!isOwnerOf(state.team, state.currentMemberId)) {
+      throw new Error("仅队长可指派负责人");
+    }
     set((s) => ({
       tasks: { ...s.tasks, [taskId]: { ...s.tasks[taskId], assigneeId: memberId } },
     }));
@@ -359,6 +393,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
   },
 
   archiveTask: async (taskId) => {
+    assertCanEditTask(get(), taskId);
     set((s) => ({
       tasks: { ...s.tasks, [taskId]: { ...s.tasks[taskId], archived: true } },
     }));
@@ -366,13 +401,19 @@ export const useTodoStore = create<TodoState>((set, get) => ({
   },
 
   restoreTask: async (taskId) => {
+    assertCanEditTask(get(), taskId);
     set((s) => ({
       tasks: { ...s.tasks, [taskId]: { ...s.tasks[taskId], archived: false } },
     }));
     await api.updateTask(taskId, { archived: false });
   },
 
+  // 删除任务：仅队长可用（破坏性操作）
   deleteTask: async (taskId) => {
+    const state = get();
+    if (!isOwnerOf(state.team, state.currentMemberId)) {
+      throw new Error("仅队长可删除任务");
+    }
     set((s) => {
       const tasks = { ...s.tasks };
       delete tasks[taskId];
@@ -544,6 +585,22 @@ export function selectCurrentTeam(state: TodoState): Team | null {
 
 export function selectCurrentMember(state: TodoState): Member | null {
   return state.currentMemberId ? state.members[state.currentMemberId] : null;
+}
+
+// 当前成员是否为队长
+export function selectIsOwner(state: TodoState): boolean {
+  return isOwnerOf(state.team, state.currentMemberId);
+}
+
+// 是否可编辑指定任务（队长可编辑全部，队员仅可编辑分配给自己的任务）
+export function makeSelectCanEditTask(taskId: string | null) {
+  return (state: TodoState): boolean => {
+    if (!taskId || !state.currentMemberId) return false;
+    if (isOwnerOf(state.team, state.currentMemberId)) return true;
+    const task = state.tasks[taskId];
+    if (!task) return false;
+    return task.assigneeId === state.currentMemberId;
+  };
 }
 
 // 当前成员在当前团队下收到的未读私信总数

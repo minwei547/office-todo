@@ -73,10 +73,10 @@ export function TaskArea() {
               value={filter.keyword}
               onChange={(e) => patchFilter({ keyword: e.target.value })}
               placeholder="搜索任务标题、描述、标签…"
-              className="w-full h-9 pl-8 pr-3 text-[13px] bg-chip/40 border border-slate-300/15 rounded-lg focus:outline-none focus:border-blue-600"
+              className="w-full h-9 pl-8 pr-3 text-[13px] bg-white/[0.04] border border-white/[0.10] rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/40 placeholder:text-muted/70"
             />
           </div>
-          <div className="flex items-center gap-1 bg-chip/40 border border-slate-300/15 rounded-lg p-0.5">
+          <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.10] rounded-lg p-0.5">
             <ViewButton
               active={view === "list"}
               onClick={() => setView("list")}
@@ -139,8 +139,8 @@ function ViewButton({
       onClick={onClick}
       className={`flex items-center gap-1.5 h-7 px-2.5 text-[12px] font-medium rounded-lg transition-colors ${
         active
-          ? "bg-slate-50 text-slate-900 shadow-paper"
-          : "text-muted hover:text-slate-900"
+          ? "bg-accent-gradient text-white shadow-glow"
+          : "text-muted hover:text-ink"
       }`}
     >
       {icon}
@@ -152,21 +152,26 @@ function ViewButton({
 function EmptyState({ title, hint }: { title: string; hint: string }) {
   return (
     <div className="text-center max-w-sm">
-      {/* 朱砂红细线插画 */}
-      <svg
-        viewBox="0 0 120 80"
-        className="mx-auto mb-4 w-32 h-auto text-blue-600/60"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.2"
-      >
-        <rect x="20" y="14" width="80" height="56" rx="2" />
-        <path d="M30 30 H86 M30 44 H70 M30 56 H60" strokeLinecap="round" />
-        <circle cx="92" cy="20" r="3" fill="currentColor" stroke="none" />
-        <path d="M14 70 L26 60 L38 70" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M82 70 L94 60 L106 70" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-      <h3 className="biz-title text-[20px] text-slate-900 mb-1.5">{title}</h3>
+      {/* 渐变光圈插画 */}
+      <div className="relative mx-auto mb-4 w-32 h-20">
+        <div className="absolute inset-0 grid place-items-center">
+          <div className="absolute w-20 h-20 rounded-full bg-accent-gradient opacity-20 blur-2xl animate-glow-pulse" />
+          <svg
+            viewBox="0 0 120 80"
+            className="relative w-32 h-auto text-accent-soft"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.2"
+          >
+            <rect x="20" y="14" width="80" height="56" rx="6" />
+            <path d="M30 30 H86 M30 44 H70 M30 56 H60" strokeLinecap="round" />
+            <circle cx="92" cy="20" r="3" fill="currentColor" stroke="none" />
+            <path d="M14 70 L26 60 L38 70" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M82 70 L94 60 L106 70" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      </div>
+      <h3 className="biz-title text-[20px] text-ink mb-1.5">{title}</h3>
       <p className="text-[13px] text-muted leading-relaxed">{hint}</p>
     </div>
   );

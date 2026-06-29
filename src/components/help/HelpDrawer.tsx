@@ -39,8 +39,8 @@ const SECTIONS: Section[] = [
         kind: "example",
         label: "示例：邀请码与团队栏",
         render: () => (
-          <div className="flex items-center gap-3 px-3 h-10 bg-chip/40 border border-slate-300/15 rounded-lg">
-            <div className="h-5 w-5 grid place-items-center bg-ink text-white rounded-lg">
+          <div className="flex items-center gap-3 px-3 h-10 bg-white/[0.04] border border-white/[0.08] rounded-lg">
+            <div className="h-5 w-5 grid place-items-center bg-accent-gradient text-white rounded-lg">
               <span className="font-sans font-semibold text-[11px]">辑</span>
             </div>
             <span className="font-sans text-[14px]">行政事务组</span>
@@ -77,14 +77,14 @@ const SECTIONS: Section[] = [
         render: () => (
           <div className="biz-card rounded-lg p-3">
             <div className="flex items-center gap-2">
-              <span className="h-5 w-5 grid place-items-center rounded-full border border-slate-300/30">
+              <span className="h-5 w-5 grid place-items-center rounded-full border border-white/[0.18]">
                 <span className="h-2 w-2 rounded-full bg-ink/20" />
               </span>
               <span className="font-sans text-[15px]">整理本月报销单据</span>
             </div>
             <div className="flex items-center gap-2 mt-2 pl-7">
               <PriorityBadge priority="high" />
-              <span className="font-mono text-[10px] text-blue-600">明天</span>
+              <span className="font-mono text-[10px] text-accent-soft">明天</span>
               <span className="text-[10px] text-muted">#财务 #月度</span>
             </div>
             <div className="mt-2 pl-7">
@@ -172,7 +172,7 @@ const SECTIONS: Section[] = [
             ].map((col) => (
               <div
                 key={col.label}
-                className="border border-slate-300/15 rounded-lg p-2 bg-chip/30"
+                className="border border-white/[0.08] rounded-lg p-2 bg-white/[0.02]"
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="text-[10px] font-medium uppercase tracking-wider text-muted">
@@ -180,7 +180,7 @@ const SECTIONS: Section[] = [
                   </span>
                   <span className="mono-meta">{col.count}</span>
                 </div>
-                <div className="h-8 bg-slate-50 border border-slate-300/10 rounded-lg" />
+                <div className="h-8 bg-bg-soft border border-white/[0.06] rounded-lg" />
               </div>
             ))}
           </div>
@@ -214,14 +214,14 @@ const SECTIONS: Section[] = [
           <div className="space-y-2">
             <div className="flex items-end gap-2">
               <Avatar char="林" size="xs" />
-              <div className="max-w-[78%] px-3 py-2 text-[12px] bg-chip/60 text-slate-900 border border-slate-300/15 rounded-[4px]">
+              <div className="max-w-[78%] px-3 py-2 text-[12px] bg-white/[0.04] text-ink border border-white/[0.08] rounded-[4px]">
                 报销单据我整理了一半，今天能交。
                 <div className="mt-1 text-[10px] font-mono text-muted">10:24</div>
               </div>
             </div>
             <div className="flex items-end gap-2 flex-row-reverse">
               <Avatar char="阿" size="xs" />
-              <div className="max-w-[78%] px-3 py-2 text-[12px] bg-blue-600 text-white border border-blue-600 rounded-[4px]">
+              <div className="max-w-[78%] px-3 py-2 text-[12px] bg-accent-gradient text-white border border-accent/40 rounded-[4px]">
                 好的，我下午一起核对。
                 <div className="mt-1 text-[10px] font-mono text-white/70">10:26</div>
               </div>
@@ -254,7 +254,7 @@ const SECTIONS: Section[] = [
         kind: "example",
         label: "示例：导出的 JSON 结构（节选）",
         render: () => (
-          <pre className="text-[11px] font-mono leading-relaxed bg-chip/60 border border-slate-300/15 rounded-lg p-3 overflow-x-auto text-slate-900/85">
+          <pre className="text-[11px] font-mono leading-relaxed bg-white/[0.04] border border-white/[0.08] rounded-lg p-3 overflow-x-auto text-ink/85">
 {`{
   "teams": { "t_xxx": {
     "teamName": "行政事务组",
@@ -300,7 +300,7 @@ export function HelpDrawer() {
       onClose={() => setOpen(false)}
       title={
         <span className="flex items-center gap-2">
-          <BookOpen size={16} className="text-blue-600" />
+          <BookOpen size={16} className="text-accent-soft" />
           使用说明
         </span>
       }
@@ -308,8 +308,8 @@ export function HelpDrawer() {
       widthClass="w-[520px] max-w-[94vw]"
     >
       {/* 引子 */}
-      <div className="mb-5 px-3 py-3 bg-chip/40 border-l-2 border-blue-600 rounded-r-lg">
-        <p className="text-[13px] leading-relaxed text-slate-900/85">
+      <div className="mb-5 px-3 py-3 bg-white/[0.04] border-l-2 border-accent rounded-r-lg">
+        <p className="text-[13px] leading-relaxed text-ink/85">
           这是一个面向小型办公室的<strong>共享待办清单</strong>：
           团队成员在同一张清单上协作创建、指派、追踪任务，
           实时同步状态，让团队对「谁在做什么、什么还没做」一目了然。
@@ -334,7 +334,7 @@ export function HelpDrawer() {
                     ?.scrollIntoView({ behavior: "smooth", block: "start" });
                   if (!expanded.has(s.id)) toggle(s.id);
                 }}
-                className="flex items-center gap-1.5 text-[12px] text-slate-900/75 hover:text-blue-600"
+                className="flex items-center gap-1.5 text-[12px] text-ink/75 hover:text-accent-soft"
               >
                 <span className="font-mono text-muted">
                   {String(i + 1).padStart(2, "0")}
@@ -358,14 +358,14 @@ export function HelpDrawer() {
             >
               <button
                 onClick={() => toggle(section.id)}
-                className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-chip/40 transition-colors"
+                className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-white/[0.04] transition-colors"
               >
                 {isOpen ? (
                   <ChevronDown size={14} className="text-muted shrink-0" />
                 ) : (
                   <ChevronRight size={14} className="text-muted shrink-0" />
                 )}
-                <h2 className="biz-title text-[15px] text-slate-900">
+                <h2 className="biz-title text-[15px] text-ink">
                   {section.title}
                 </h2>
               </button>
@@ -387,7 +387,7 @@ export function HelpDrawer() {
       </div>
 
       {/* 页脚 */}
-      <div className="mt-6 pt-4 border-t border-slate-300/10 mono-meta text-center leading-relaxed">
+      <div className="mt-6 pt-4 border-t border-white/[0.06] mono-meta text-center leading-relaxed">
         数据存储于浏览器本地 · 同设备多标签自动同步
         <br />
         跨设备迁移请使用「团队设置 → 导入 / 导出 JSON」
@@ -400,14 +400,14 @@ function BlockView({ block }: { block: Block }) {
   switch (block.kind) {
     case "para":
       return (
-        <p className="text-[13px] text-slate-900/85 leading-relaxed">{block.text}</p>
+        <p className="text-[13px] text-ink/85 leading-relaxed">{block.text}</p>
       );
     case "steps":
       return (
         <ol className="space-y-1.5">
           {block.items.map((item, i) => (
-            <li key={i} className="flex items-start gap-2.5 text-[13px] text-slate-900/85">
-              <span className="shrink-0 h-5 w-5 grid place-items-center bg-ink text-white rounded-full font-mono text-[10px] font-semibold mt-0.5">
+            <li key={i} className="flex items-start gap-2.5 text-[13px] text-ink/85">
+              <span className="shrink-0 h-5 w-5 grid place-items-center bg-accent-gradient text-white rounded-full font-mono text-[10px] font-semibold mt-0.5">
                 {i + 1}
               </span>
               <span className="leading-relaxed">{item}</span>
@@ -417,25 +417,25 @@ function BlockView({ block }: { block: Block }) {
       );
     case "tip":
       return (
-        <div className="flex items-start gap-2 px-3 py-2 bg-blue-600/8 border-l-2 border-blue-600 rounded-r-lg">
-          <span className="font-sans font-semibold text-blue-600 text-[13px] shrink-0">
+        <div className="flex items-start gap-2 px-3 py-2 bg-accent/10 border-l-2 border-accent rounded-r-lg">
+          <span className="font-sans font-semibold text-accent-soft text-[13px] shrink-0">
             提示
           </span>
-          <span className="text-[12px] text-slate-900/80 leading-relaxed">
+          <span className="text-[12px] text-ink/80 leading-relaxed">
             {block.text}
           </span>
         </div>
       );
     case "example":
       return (
-        <div className="border border-slate-300/15 rounded-lg overflow-hidden">
-          <div className="px-3 py-1.5 bg-chip/60 border-b border-slate-300/10 flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+        <div className="border border-white/[0.08] rounded-lg overflow-hidden">
+          <div className="px-3 py-1.5 bg-white/[0.04] border-b border-white/[0.06] flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-accent-gradient" />
             <span className="text-[10px] font-medium uppercase tracking-wider text-muted">
               示例 · {block.label}
             </span>
           </div>
-          <div className="p-3 bg-slate-50">{block.render()}</div>
+          <div className="p-3 bg-bg-soft">{block.render()}</div>
         </div>
       );
     case "keys":
@@ -444,19 +444,19 @@ function BlockView({ block }: { block: Block }) {
           {block.items.map((item, i) => (
             <div
               key={i}
-              className="flex items-center gap-2 px-2 py-1.5 bg-chip/40 border border-slate-300/15 rounded-lg"
+              className="flex items-center gap-2 px-2 py-1.5 bg-white/[0.04] border border-white/[0.08] rounded-lg"
             >
               <span className="flex items-center gap-1">
                 {item.keys.map((k) => (
                   <kbd
                     key={k}
-                    className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-slate-50 border border-slate-300/30 rounded-lg font-mono text-[10px] font-semibold text-slate-900 shadow-paper"
+                    className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-bg-soft border border-white/[0.18] rounded-lg font-mono text-[10px] font-semibold text-ink shadow-paper"
                   >
                     {k}
                   </kbd>
                 ))}
               </span>
-              <span className="text-[12px] text-slate-900/75">{item.desc}</span>
+              <span className="text-[12px] text-ink/75">{item.desc}</span>
             </div>
           ))}
         </div>

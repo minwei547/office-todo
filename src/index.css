@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 :root {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  font-family: "Inter", "PingFang SC", "Microsoft YaHei", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   line-height: 1.55;
   font-weight: 400;
 
@@ -12,7 +13,7 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 html,
@@ -23,11 +24,29 @@ body,
 
 body {
   margin: 0;
-  background-color: #f1f5f9;
-  color: #0f172a;
+  /* 多层深色背景 + 顶部柔光 */
+  background-color: #070713;
+  background-image:
+    radial-gradient(
+      ellipse 80% 60% at 50% 0%,
+      rgba(99, 102, 241, 0.18),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 100% 100%,
+      rgba(168, 85, 247, 0.12),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 0% 100%,
+      rgba(6, 182, 212, 0.10),
+      transparent 70%
+    );
+  background-attachment: fixed;
+  color: #f4f4fb;
 }
 
-/* 滚动条：商务蓝细线 */
+/* 滚动条：玻璃细线 */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -36,17 +55,17 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(37, 99, 235, 0.28);
+  background: rgba(129, 140, 248, 0.25);
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(37, 99, 235, 0.48);
+  background: rgba(129, 140, 248, 0.5);
 }
 
-/* 选中态：商务蓝浅底 */
+/* 选中态：蓝紫光 */
 ::selection {
-  background: rgba(37, 99, 235, 0.15);
-  color: #0f172a;
+  background: rgba(99, 102, 241, 0.35);
+  color: #ffffff;
 }
 
 input,
@@ -55,18 +74,52 @@ button {
   font-family: inherit;
 }
 
-/* utility：商务卡片底 + 现代阴影 */
+/* 默认 input 颜色（让原生 date/select 在深色下可读） */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  cursor: pointer;
+}
+
+/* utility：玻璃卡片 + 网格底纹 */
 @layer components {
+  /* 普通玻璃卡片 */
   .biz-card {
-    @apply bg-white rounded-lg border border-slate-200 shadow-sm;
+    @apply rounded-xl border border-white/[0.08] backdrop-blur-xl;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.04) 0%,
+      rgba(255, 255, 255, 0.015) 100%
+    );
+  }
+  /* 抬升卡片：稍亮 + 投影 */
+  .biz-card-lift {
+    @apply rounded-xl border border-white/[0.10] backdrop-blur-xl shadow-lift;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.02) 100%
+    );
   }
   .biz-title {
-    @apply font-sans font-bold tracking-tight;
+    @apply font-sans font-semibold tracking-tight;
   }
   .mono-meta {
-    @apply font-mono text-[11px] tracking-wide text-slate-500;
+    @apply font-mono text-[11px] tracking-wide text-muted;
   }
   .focus-ring {
-    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/40;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40;
+  }
+  /* 渐变文字 */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-accent-gradient;
+  }
+  /* 网格底纹容器 */
+  .grid-bg {
+    background-image: linear-gradient(
+        rgba(255, 255, 255, 0.025) 1px,
+        transparent 1px
+      ),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
 }

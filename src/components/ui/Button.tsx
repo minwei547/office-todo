@@ -20,13 +20,13 @@ const sizeClass: Record<Size, string> = {
 
 const variantClass: Record<Variant, string> = {
   primary:
-    "bg-blue-600 text-white border border-blue-600 hover:bg-blue-600/90 hover:shadow-paper active:translate-y-px",
+    "bg-accent-gradient text-white border border-accent/40 hover:shadow-glow active:translate-y-px",
   secondary:
-    "bg-slate-50 text-slate-900 border border-slate-300/25 hover:border-slate-300/50 hover:bg-chip/60 active:translate-y-px",
+    "bg-white/[0.04] text-ink border border-white/[0.10] hover:bg-white/[0.08] hover:border-white/[0.18] active:translate-y-px",
   ghost:
-    "bg-transparent text-slate-900/80 border border-transparent hover:bg-ink/5 hover:text-slate-900",
+    "bg-transparent text-ink/80 border border-transparent hover:bg-white/[0.06] hover:text-ink",
   danger:
-    "bg-transparent text-blue-600 border border-blue-600/40 hover:bg-blue-50 hover:border-blue-600",
+    "bg-transparent text-danger border border-danger/40 hover:bg-danger/10 hover:border-danger",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -72,8 +72,8 @@ export function IconButton({
         "inline-flex items-center justify-center rounded-lg border border-transparent transition-colors focus-ring",
         size === "sm" ? "h-7 w-7" : "h-9 w-9",
         tone === "neutral"
-          ? "text-slate-900/70 hover:bg-ink/5 hover:text-slate-900"
-          : "text-blue-600 hover:bg-blue-50",
+          ? "text-ink/70 hover:bg-white/[0.06] hover:text-ink"
+          : "text-accent-soft hover:bg-accent/10",
         className,
       )}
       {...rest}

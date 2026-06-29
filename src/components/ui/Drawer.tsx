@@ -51,18 +51,18 @@ export function Drawer({
       <button
         aria-label="关闭"
         onClick={onClose}
-        className="absolute inset-0 bg-ink/30 backdrop-blur-[1px] animate-[fade-up_200ms_ease-out]"
+        className="absolute inset-0 bg-black/60 backdrop-blur-[2px] animate-[fade-up_200ms_ease-out]"
       />
       {/* 抽屉本体 */}
       <div
         className={cn(
-          "absolute right-0 top-0 h-full bg-slate-50 border-l border-slate-300/15 shadow-lift flex flex-col animate-slide-in",
+          "absolute right-0 top-0 h-full bg-bg-soft/95 border-l border-white/[0.08] shadow-lift flex flex-col animate-slide-in backdrop-blur-xl",
           widthClass,
         )}
       >
-        <header className="flex items-start justify-between gap-3 px-5 pt-5 pb-3 border-b border-slate-300/10">
+        <header className="flex items-start justify-between gap-3 px-5 pt-5 pb-3 border-b border-white/[0.06]">
           <div className="min-w-0">
-            <div className="font-sans text-[20px] font-medium text-slate-900 leading-tight">
+            <div className="font-sans text-[20px] font-semibold text-ink leading-tight">
               {title}
             </div>
             {subtitle ? (
@@ -75,7 +75,7 @@ export function Drawer({
         </header>
         <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
         {footer ? (
-          <footer className="px-5 py-3 border-t border-slate-300/10 bg-chip/40">
+          <footer className="px-5 py-3 border-t border-white/[0.06] bg-white/[0.02]">
             {footer}
           </footer>
         ) : null}

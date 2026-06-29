@@ -22,14 +22,15 @@ function hueFromChar(char: string): number {
 
 export function Avatar({ char, size = "sm", className, title }: AvatarProps) {
   const hue = hueFromChar(char);
-  const bg = `hsl(${hue} 32% 88%)`;
-  const fg = `hsl(${hue} 45% 28%)`;
-  const border = `hsl(${hue} 30% 70%)`;
+  // 深色底 + 高饱和前景，呼应 trae.cn 的科技玻璃质感
+  const bg = `hsl(${hue} 60% 22% / 0.6)`;
+  const fg = `hsl(${hue} 80% 75%)`;
+  const border = `hsl(${hue} 60% 55% / 0.4)`;
   return (
     <span
       title={title}
       className={cn(
-        "inline-flex items-center justify-center rounded-full font-mono font-semibold uppercase select-none border",
+        "inline-flex items-center justify-center rounded-full font-mono font-semibold uppercase select-none border backdrop-blur-sm",
         sizeClass[size],
         className,
       )}

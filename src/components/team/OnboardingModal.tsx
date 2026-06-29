@@ -93,130 +93,141 @@ export function OnboardingModal() {
       <button
         aria-label="关闭"
         onClick={() => setOpen(false)}
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] animate-[fade-up_200ms_ease-out]"
+        className="absolute inset-0 bg-black/70 backdrop-blur-md animate-[fade-up_200ms_ease-out]"
       />
-      <div className="relative w-full max-w-[460px] bg-white border border-slate-200 shadow-lift rounded-lg overflow-hidden animate-fade-up">
-        {/* 头部 */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-200">
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 grid place-items-center bg-blue-600 text-white rounded-lg">
-                <span className="font-sans font-semibold text-[13px]">协</span>
-              </div>
-              <h2 className="biz-title text-[20px] text-slate-900">
-                办公协作待办清单
-              </h2>
-            </div>
-            <p className="text-[12px] text-slate-500 mt-1 ml-9">
-              一张共享清单，让全队知道"谁在做什么、什么还没做"
-            </p>
-          </div>
-          <IconButton onClick={() => setOpen(false)} aria-label="关闭">
-            <X size={18} />
-          </IconButton>
-        </div>
+      <div className="relative w-full max-w-[460px] bg-bg-soft/90 border border-white/[0.10] shadow-lift rounded-xl overflow-hidden animate-fade-up backdrop-blur-xl">
+        {/* 顶部光带 */}
+        <div className="absolute inset-x-0 top-0 h-px bg-accent-gradient opacity-80" />
+        {/* 渐变光晕 */}
+        <div className="pointer-events-none absolute -top-20 -left-20 w-60 h-60 rounded-full bg-accent/15 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-20 -right-20 w-60 h-60 rounded-full bg-violet/15 blur-3xl" />
 
-        {/* Tab 切换 */}
-        <div className="flex border-b border-slate-200">
-          <TabButton
-            active={tab === "create"}
-            onClick={() => setTab("create")}
-            icon={<Plus size={14} />}
-            label="创建团队"
-          />
-          <TabButton
-            active={tab === "join"}
-            onClick={() => setTab("join")}
-            icon={<Users size={14} />}
-            label="加入团队"
-          />
-        </div>
-
-        <div className="p-6 space-y-4">
-          {/* 昵称 */}
-          <div>
-            <label className="text-[11px] font-medium uppercase tracking-wider text-slate-500 block mb-1.5">
-              你的昵称
-            </label>
-            <TextInput
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              placeholder="例如：林溪、设计·阿岚"
-              autoFocus
-              maxLength={20}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") submit();
-              }}
-            />
-            <p className="text-[11px] text-slate-400 mt-1">将作为你在该团队中的身份标识</p>
-          </div>
-
-          {tab === "create" ? (
+        <div className="relative">
+          {/* 头部 */}
+          <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-white/[0.06]">
             <div>
-              <label className="text-[11px] font-medium uppercase tracking-wider text-slate-500 block mb-1.5">
-                团队名称
+              <div className="flex items-center gap-2">
+                <div className="relative h-7 w-7">
+                  <div className="absolute inset-0 rounded-lg bg-accent-gradient opacity-60 blur-[4px]" />
+                  <div className="relative h-7 w-7 grid place-items-center bg-accent-gradient text-white rounded-lg">
+                    <span className="font-sans font-semibold text-[13px]">协</span>
+                  </div>
+                </div>
+                <h2 className="biz-title text-[20px] text-ink">
+                  办公协作待办清单
+                </h2>
+              </div>
+              <p className="text-[12px] text-muted mt-1 ml-9">
+                一张共享清单，让全队知道"谁在做什么、什么还没做"
+              </p>
+            </div>
+            <IconButton onClick={() => setOpen(false)} aria-label="关闭">
+              <X size={18} />
+            </IconButton>
+          </div>
+
+          {/* Tab 切换 */}
+          <div className="flex border-b border-white/[0.06]">
+            <TabButton
+              active={tab === "create"}
+              onClick={() => setTab("create")}
+              icon={<Plus size={14} />}
+              label="创建团队"
+            />
+            <TabButton
+              active={tab === "join"}
+              onClick={() => setTab("join")}
+              icon={<Users size={14} />}
+              label="加入团队"
+            />
+          </div>
+
+          <div className="p-6 space-y-4">
+            {/* 昵称 */}
+            <div>
+              <label className="text-[11px] font-medium uppercase tracking-wider text-muted block mb-1.5">
+                你的昵称
               </label>
               <TextInput
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-                placeholder="例如：行政事务组、产品迭代 2026"
-                maxLength={32}
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder="例如：林溪、设计·阿岚"
+                autoFocus
+                maxLength={20}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") submit();
                 }}
               />
-              <p className="text-[11px] text-slate-400 mt-1">
-                创建后将生成 6 位邀请码，可分享给同事
-              </p>
+              <p className="text-[11px] text-dim mt-1">将作为你在该团队中的身份标识</p>
             </div>
-          ) : (
-            <div>
-              <label className="text-[11px] font-medium uppercase tracking-wider text-slate-500 block mb-1.5">
-                团队邀请码
-              </label>
-              <input
-                value={inviteCode}
-                onChange={(e) => {
-                  const v = e.target.value.toUpperCase().slice(0, 6);
-                  setInviteCode(v);
-                }}
-                placeholder="ABCDEF"
-                maxLength={6}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") submit();
-                }}
-                className="w-full bg-slate-50 border border-slate-300 px-3 h-12 text-[20px] tracking-[0.5em] font-mono font-medium text-center text-slate-900 placeholder:text-slate-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/40"
-              />
-              <p className="text-[11px] text-slate-400 mt-1">
-                向团队所有者索取 6 位邀请码
-              </p>
-            </div>
-          )}
 
-          {error ? (
-            <div className="px-3 py-2 text-[12px] text-red-600 bg-red-50 border border-red-200 rounded-lg">
-              {error}
-            </div>
-          ) : null}
+            {tab === "create" ? (
+              <div>
+                <label className="text-[11px] font-medium uppercase tracking-wider text-muted block mb-1.5">
+                  团队名称
+                </label>
+                <TextInput
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  placeholder="例如：行政事务组、产品迭代 2026"
+                  maxLength={32}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") submit();
+                  }}
+                />
+                <p className="text-[11px] text-dim mt-1">
+                  创建后将生成 6 位邀请码，可分享给同事
+                </p>
+              </div>
+            ) : (
+              <div>
+                <label className="text-[11px] font-medium uppercase tracking-wider text-muted block mb-1.5">
+                  团队邀请码
+                </label>
+                <input
+                  value={inviteCode}
+                  onChange={(e) => {
+                    const v = e.target.value.toUpperCase().slice(0, 6);
+                    setInviteCode(v);
+                  }}
+                  placeholder="ABCDEF"
+                  maxLength={6}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") submit();
+                  }}
+                  className="w-full bg-white/[0.04] border border-white/[0.10] px-3 h-12 text-[20px] tracking-[0.5em] font-mono font-medium text-center text-ink placeholder:text-dim rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/40"
+                />
+                <p className="text-[11px] text-dim mt-1">
+                  向团队所有者索取 6 位邀请码
+                </p>
+              </div>
+            )}
 
-          <Button
-            variant="primary"
-            size="lg"
-            className="w-full"
-            onClick={submit}
-            disabled={submitting}
-            trailingIcon={<ArrowRight size={15} />}
-          >
-            {submitting
-              ? "处理中…"
-              : tab === "create"
-                ? "创建并进入团队"
-                : "加入团队"}
-          </Button>
+            {error ? (
+              <div className="px-3 py-2 text-[12px] text-danger bg-danger/10 border border-danger/30 rounded-lg">
+                {error}
+              </div>
+            ) : null}
 
-          <p className="text-center text-[12px] text-slate-400">
-            数据存储于云端，团队所有成员将看到同一份清单
-          </p>
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full"
+              onClick={submit}
+              disabled={submitting}
+              trailingIcon={<ArrowRight size={15} />}
+            >
+              {submitting
+                ? "处理中…"
+                : tab === "create"
+                  ? "创建并进入团队"
+                  : "加入团队"}
+            </Button>
+
+            <p className="text-center text-[12px] text-dim">
+              数据存储于云端，团队所有成员将看到同一份清单
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -239,8 +250,8 @@ function TabButton({
       onClick={onClick}
       className={`flex-1 flex items-center justify-center gap-1.5 h-10 text-[13px] font-medium border-b-2 transition-colors ${
         active
-          ? "border-blue-600 text-slate-900"
-          : "border-transparent text-slate-400 hover:text-slate-600"
+          ? "border-accent text-ink"
+          : "border-transparent text-dim hover:text-muted"
       }`}
     >
       {icon}
