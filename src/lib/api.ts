@@ -214,6 +214,43 @@ export const api = {
     return { ok: true };
   },
 
+  // 队长移除队员：删除该成员的任务关联 + 私信 + 成员记录
+  async removeMember(memberId: string) {
+    const me = await getMember();
+    const { data: team } = await supabase
+      .from("teams")
+      .select("*")
+      .eq("teamId", me.teamId)
+      .single();
+    if (!team) throw new Error("团队不存在");
+    if (team.ownerId !== me.memberId) throw new Error("仅队长可移除队员");
+    if (memberId === me.memberId) throw new Error("不能移除自己（队长）");
+    const { data: target } = await supabase
+      .from("members")
+      .select("*")
+      .eq("memberId", memberId)
+      .single();
+    if (!target || target.teamId !== me.teamId) throw new Error("该成员不在本团队");
+    // 1. 解除该成员负责的任务的指派（不删除任务，仅清空 assigneeId）
+    await supabase
+      .from("tasks")
+      .update({ assigneeId: null })
+      .eq("teamId", me.teamId)
+      .eq("assigneeId", memberId);
+    // 2. 删除与该成员相关的私信（发送或接收的都删）
+    await supabase
+      .from("messages")
+      .delete()
+      .or(`senderId.eq.${memberId},receiverId.eq.${memberId}`)
+      .eq("teamId", me.teamId);
+    // 3. 删除该成员创建的活动记录的 actorId 关联（保留历史，仅清空 actorId）
+    // 为简化，保留活动记录但无法再显示昵称
+    // 4. 删除成员记录
+    const { error } = await supabase.from("members").delete().eq("memberId", memberId);
+    if (error) throw new Error(error.message);
+    return { ok: true, nickname: target.nickname };
+  },
+
   async getTeamTasks(teamId: string) {
     const member = await getMember();
     if (member.teamId !== teamId) throw new Error("无权访问");
@@ -407,15 +444,22 @@ export const api = {
     return { conversations: Array.from(convMap.values()) };
   },
 
-  async getConversation(peerId: string) {
+  async getConversation(peerId: string, limit = 50, beforeTimestamp?: number) {
     const member = await getMember();
     const convId = conversationIdOf(member.memberId, peerId);
-    const { data: messages } = await supabase
+    let query = supabase
       .from("messages")
       .select("*")
       .eq("conversationId", convId)
-      .order("timestamp");
-    return { messages: (messages || []).map(rowToMessage) };
+      .order("timestamp", { ascending: false })
+      .limit(limit);
+    if (beforeTimestamp) {
+      query = query.lt("timestamp", beforeTimestamp);
+    }
+    const { data: messages } = await query;
+    // 升序返回
+    const sorted = (messages || []).slice().reverse();
+    return { messages: sorted.map(rowToMessage), hasMore: (messages || []).length >= limit };
   },
 
   async sendMessage(receiverId: string, content: string) {
@@ -428,7 +472,36 @@ export const api = {
     const now = Date.now();
     const convId = conversationIdOf(member.memberId, receiverId);
     const { error } = await supabase.from("messages").insert([
-      { messageId, teamId: member.teamId, conversationId: convId, senderId: member.memberId, receiverId, content: text, timestamp: now, read: false },
+      { messageId, teamId: member.teamId, conversationId: convId, senderId: member.memberId, receiverId, content: text, kind: "text", timestamp: now, read: false },
+    ]);
+    if (error) throw new Error(error.message);
+    const { data: message } = await supabase.from("messages").select("*").eq("messageId", messageId).single();
+    return { message: rowToMessage(message) };
+  },
+
+  // 上传图片到 Supabase Storage 并发送图片消息
+  async sendImageMessage(receiverId: string, file: File) {
+    const member = await getMember();
+    if (!receiverId || !file) throw new Error("receiverId 与 file 必填");
+    if (file.size > 5 * 1024 * 1024) throw new Error("图片不能超过 5MB");
+    if (!file.type.startsWith("image/")) throw new Error("只能发送图片");
+    const { data: receiver } = await supabase.from("members").select("*").eq("memberId", receiverId).single();
+    if (!receiver || receiver.teamId !== member.teamId) throw new Error("接收方不在同一团队");
+    // 上传到 Storage
+    const ext = file.name.split(".").pop() || "png";
+    const filePath = `${member.teamId}/${conversationIdOf(member.memberId, receiverId)}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error: uploadErr } = await supabase.storage
+      .from("dm-images")
+      .upload(filePath, file, { contentType: file.type, upsert: false });
+    if (uploadErr) throw new Error("图片上传失败：" + uploadErr.message);
+    // 生成公共 URL
+    const { data: pub } = supabase.storage.from("dm-images").getPublicUrl(filePath);
+    const url = pub.publicUrl;
+    const messageId = shortId("d");
+    const now = Date.now();
+    const convId = conversationIdOf(member.memberId, receiverId);
+    const { error } = await supabase.from("messages").insert([
+      { messageId, teamId: member.teamId, conversationId: convId, senderId: member.memberId, receiverId, content: url, kind: "image", timestamp: now, read: false },
     ]);
     if (error) throw new Error(error.message);
     const { data: message } = await supabase.from("messages").select("*").eq("messageId", messageId).single();

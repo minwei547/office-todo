@@ -87,23 +87,46 @@ CREATE TABLE messages (
   "senderId" TEXT NOT NULL,
   "receiverId" TEXT NOT NULL,
   "content" TEXT NOT NULL,
+  "kind" TEXT NOT NULL DEFAULT 'text',
   "timestamp" BIGINT NOT NULL,
   "read" BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- ============================================
 -- 索引（列名也要加双引号）
+-- 针对数据量增长的查询路径优化：
+-- · 任务按团队 + 归档过滤 + 排序
+-- · 任务按负责人筛选
+-- · 私信按会话 + 时间倒序分页
+-- · 活动按任务 + 时间排序
 -- ============================================
 CREATE INDEX idx_members_teamId ON members("teamId");
 CREATE INDEX idx_members_userId ON members("userId");
 CREATE INDEX idx_users_username ON users("username");
+CREATE INDEX idx_teams_inviteCode ON teams("inviteCode");
+
+-- 任务：常用筛选/排序路径
 CREATE INDEX idx_tasks_teamId ON tasks("teamId");
 CREATE INDEX idx_tasks_status ON tasks("status");
+CREATE INDEX idx_tasks_teamId_archived ON tasks("teamId", "archived");
+CREATE INDEX idx_tasks_assigneeId ON tasks("assigneeId");
+CREATE INDEX idx_tasks_teamId_createdAt ON tasks("teamId", "createdAt" DESC);
+CREATE INDEX idx_tasks_dueDate ON tasks("dueDate");
+
+-- 活动：按任务 + 时间排序
 CREATE INDEX idx_activities_taskId ON activities("taskId");
+CREATE INDEX idx_activities_taskId_timestamp ON activities("taskId", "timestamp" DESC);
+
+-- 备注：按任务 + 时间排序
 CREATE INDEX idx_notes_taskId ON notes("taskId");
+CREATE INDEX idx_notes_taskId_timestamp ON notes("taskId", "timestamp" DESC);
+
+-- 私信：会话分页加载核心索引
+-- getConversation 用 conversationId + timestamp DESC + LIMIT
 CREATE INDEX idx_messages_conversationId ON messages("conversationId");
+CREATE INDEX idx_messages_conv_timestamp ON messages("conversationId", "timestamp" DESC);
 CREATE INDEX idx_messages_receiver_read ON messages("receiverId", "read");
-CREATE INDEX idx_teams_inviteCode ON teams("inviteCode");
+CREATE INDEX idx_messages_teamId ON messages("teamId");
 
 -- ============================================
 -- RLS 策略（允许 anon 角色完全访问所有表）
@@ -162,11 +185,27 @@ CREATE POLICY "anon_all_messages" ON messages
   USING (true)
   WITH CHECK (true);
 
+-- ============================================
+-- Storage bucket：私信图片
+-- ============================================
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('dm-images', 'dm-images', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage 策略：允许 anon 读写
+CREATE POLICY "anon_upload_dm_images" ON storage.objects
+  FOR INSERT TO anon
+  WITH CHECK (bucket_id = 'dm-images');
+
+CREATE POLICY "anon_read_dm_images" ON storage.objects
+  FOR SELECT TO anon
+  USING (bucket_id = 'dm-images');
+
 -- 强制刷新 PostgREST schema cache
 NOTIFY pgrst, 'reload schema';
 
 -- 完成提示
 DO $$
 BEGIN
-  RAISE NOTICE '✅ 建表完成！共创建 7 张表 + 10 个索引 + 7 条 RLS 策略（所有驼峰列名已加双引号）';
+  RAISE NOTICE '✅ 建表完成！共创建 7 张表 + 18 个索引 + 7 条 RLS 策略 + 1 个 Storage bucket（所有驼峰列名已加双引号）';
 END $$;

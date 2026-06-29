@@ -13,7 +13,7 @@ export function Field({ label, hint, children, className }: FieldProps) {
   return (
     <label className={cn("block", className)}>
       <div className="flex items-baseline justify-between mb-1.5">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-muted">
+        <span className="text-[12px] font-semibold text-ink">
           {label}
         </span>
         {hint ? (
@@ -26,7 +26,7 @@ export function Field({ label, hint, children, className }: FieldProps) {
 }
 
 const controlClass =
-  "w-full bg-white/[0.04] border border-white/[0.10] px-3 h-9 text-[13px] text-ink placeholder:text-muted/70 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/40 transition-colors disabled:opacity-60 disabled:cursor-not-allowed";
+  "w-full bg-bg-soft border border-line px-3.5 h-9 text-[13px] text-ink placeholder:text-dim rounded-md focus:outline-none focus:border-mint focus:bg-surface focus:ring-4 focus:ring-mint/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed";
 
 export function TextInput(
   props: React.InputHTMLAttributes<HTMLInputElement>,
@@ -41,7 +41,7 @@ export function TextArea(
   const { className, ...rest } = props;
   return (
     <textarea
-      className={cn(controlClass, "h-auto py-2 leading-relaxed resize-none", className)}
+      className={cn(controlClass, "h-auto py-2.5 leading-relaxed resize-none", className)}
       {...rest}
     />
   );

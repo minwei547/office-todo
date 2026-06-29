@@ -17,13 +17,13 @@ export function ProgressBar({
   const clamped = Math.max(0, Math.min(100, Math.round(progress)));
   const tone =
     status === "done" || clamped >= 100
-      ? "bg-success"
+      ? "bg-[#6fbf8e]"
       : clamped > 0
-        ? "bg-accent-gradient"
-        : "bg-white/15";
+        ? "bg-mint-gradient"
+        : "bg-bg-soft";
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <div className="flex-1 h-1 bg-white/[0.08] rounded-full overflow-hidden">
+      <div className="flex-1 h-1 bg-bg-soft rounded-full overflow-hidden">
         <div
           className={cn("h-full rounded-full transition-all duration-300", tone)}
           style={{ width: `${clamped}%` }}

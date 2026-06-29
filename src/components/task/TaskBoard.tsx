@@ -20,7 +20,7 @@ export function TaskBoard({ columns }: { columns: Column[] }) {
           </div>
           <div className="space-y-2 min-h-[60px]">
             {col.tasks.length === 0 ? (
-              <div className="h-16 grid place-items-center text-[12px] text-dim italic border border-dashed border-white/[0.08] rounded-lg">
+              <div className="h-16 grid place-items-center text-[12px] text-dim italic border border-dashed border-line rounded-lg">
                 暂无
               </div>
             ) : (

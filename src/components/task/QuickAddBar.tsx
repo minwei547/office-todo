@@ -72,7 +72,7 @@ export function QuickAddBar() {
     <div className="biz-card rounded-lg">
       {/* 主输入 */}
       <div className="flex items-center gap-2 px-3.5 h-12">
-        <span className="h-5 w-5 shrink-0 grid place-items-center text-accent-soft">
+        <span className="h-5 w-5 shrink-0 grid place-items-center text-[#4a7a68]">
           <Plus size={18} />
         </span>
         <input
@@ -104,7 +104,7 @@ export function QuickAddBar() {
 
       {/* 展开态：附加属性 */}
       {expanded ? (
-        <div className="px-3.5 pb-3.5 pt-1 border-t border-white/[0.06] flex flex-wrap items-center gap-2 animate-fade-up">
+        <div className="px-3.5 pb-3.5 pt-1 border-t border-line flex flex-wrap items-center gap-2 animate-fade-up">
           {/* 优先级 */}
           <div className="flex items-center gap-1.5">
             <Flag size={12} className="text-muted" />
@@ -113,7 +113,7 @@ export function QuickAddBar() {
               onChange={(e) =>
                 setDraft((d) => ({ ...d, priority: e.target.value as Priority }))
               }
-              className="h-7 px-2 text-[12px] bg-white/[0.04] border border-white/[0.10] rounded-lg focus:outline-none focus:border-accent text-ink"
+              className="h-7 px-2 text-[12px] bg-bg-soft border border-line rounded-lg focus:outline-none focus:border-mint text-ink"
             >
               {(Object.keys(PRIORITY_LABEL) as Priority[]).map((p) => (
                 <option key={p} value={p}>
@@ -133,7 +133,7 @@ export function QuickAddBar() {
               onChange={(e) =>
                 setDraft((d) => ({ ...d, dueDate: e.target.value }))
               }
-              className="h-7 px-2 text-[12px] bg-white/[0.04] border border-white/[0.10] rounded-lg focus:outline-none focus:border-accent text-ink"
+              className="h-7 px-2 text-[12px] bg-bg-soft border border-line rounded-lg focus:outline-none focus:border-mint text-ink"
             />
           </div>
 
@@ -149,7 +149,7 @@ export function QuickAddBar() {
                     assigneeId: e.target.value || null,
                   }))
                 }
-                className="h-7 px-2 text-[12px] bg-white/[0.04] border border-white/[0.10] rounded-lg focus:outline-none focus:border-accent max-w-[120px] text-ink"
+                className="h-7 px-2 text-[12px] bg-bg-soft border border-line rounded-lg focus:outline-none focus:border-mint max-w-[120px] text-ink"
               >
                 <option value="">未指派</option>
                 {teamMembers.map((m) => (
@@ -159,7 +159,7 @@ export function QuickAddBar() {
                 ))}
               </select>
             ) : (
-              <span className="inline-flex items-center gap-1 h-7 px-2 text-[12px] bg-accent/10 text-accent-soft border border-accent/30 rounded-lg">
+              <span className="inline-flex items-center gap-1 h-7 px-2 text-[12px] bg-mint-soft text-[#4a7a68] border border-mint rounded-lg">
                 指派给我
               </span>
             )}
@@ -178,12 +178,12 @@ export function QuickAddBar() {
                 }
               }}
               placeholder="标签"
-              className="h-7 w-20 px-2 text-[12px] bg-white/[0.04] border border-white/[0.10] rounded-lg focus:outline-none focus:border-accent text-ink"
+              className="h-7 w-20 px-2 text-[12px] bg-bg-soft border border-line rounded-lg focus:outline-none focus:border-mint text-ink"
             />
             {draft.tags.map((t) => (
               <span
                 key={t}
-                className="inline-flex items-center h-6 px-1.5 text-[11px] bg-accent/15 text-accent-soft border border-accent/30 rounded-lg"
+                className="inline-flex items-center h-6 px-1.5 text-[11px] bg-mint-soft text-[#4a7a68] border border-mint rounded-lg"
               >
                 #{t}
               </span>

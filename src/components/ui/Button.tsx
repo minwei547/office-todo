@@ -13,20 +13,24 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const sizeClass: Record<Size, string> = {
-  sm: "h-7 px-2.5 text-[12px] gap-1",
-  md: "h-9 px-3.5 text-[13px] gap-1.5",
+  sm: "h-7 px-3 text-[12px] gap-1",
+  md: "h-9 px-4 text-[13px] gap-1.5",
   lg: "h-11 px-5 text-[14px] gap-2",
 };
 
 const variantClass: Record<Variant, string> = {
+  // 薄荷渐变主按钮
   primary:
-    "bg-accent-gradient text-white border border-accent/40 hover:shadow-glow active:translate-y-px",
+    "bg-mint-gradient text-[#2a5a4a] border border-transparent hover:shadow-glow hover:-translate-y-px active:translate-y-0",
+  // 白底次按钮
   secondary:
-    "bg-white/[0.04] text-ink border border-white/[0.10] hover:bg-white/[0.08] hover:border-white/[0.18] active:translate-y-px",
+    "bg-surface text-ink border border-line hover:bg-bg-soft hover:border-mint active:translate-y-px",
+  // 幽灵按钮
   ghost:
-    "bg-transparent text-ink/80 border border-transparent hover:bg-white/[0.06] hover:text-ink",
+    "bg-transparent text-muted border border-transparent hover:bg-bg-soft hover:text-ink",
+  // 蜜桃危险
   danger:
-    "bg-transparent text-danger border border-danger/40 hover:bg-danger/10 hover:border-danger",
+    "bg-peach-soft text-[#a85c4a] border border-peach hover:bg-peach hover:text-[#5a3a2a]",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -38,7 +42,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 focus-ring select-none",
+          "inline-flex items-center justify-center font-semibold rounded-full transition-all duration-150 focus-ring select-none",
           sizeClass[size],
           variantClass[variant],
           className,
@@ -69,11 +73,11 @@ export function IconButton({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center rounded-lg border border-transparent transition-colors focus-ring",
+        "inline-flex items-center justify-center rounded-full border border-transparent transition-colors focus-ring",
         size === "sm" ? "h-7 w-7" : "h-9 w-9",
         tone === "neutral"
-          ? "text-ink/70 hover:bg-white/[0.06] hover:text-ink"
-          : "text-accent-soft hover:bg-accent/10",
+          ? "text-muted hover:bg-bg-soft hover:text-ink border-line bg-surface shadow-sm"
+          : "text-[#4a7a68] hover:bg-mint-soft border-mint bg-mint-soft",
         className,
       )}
       {...rest}

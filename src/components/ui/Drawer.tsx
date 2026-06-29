@@ -21,7 +21,7 @@ export function Drawer({
   subtitle,
   children,
   footer,
-  widthClass = "w-[420px] max-w-[92vw]",
+  widthClass = "w-[440px] max-w-[92vw]",
 }: DrawerProps) {
   // ESC 关闭
   useEffect(() => {
@@ -47,22 +47,22 @@ export function Drawer({
 
   return (
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
-      {/* 遮罩 */}
+      {/* 遮罩：柔和磨砂 */}
       <button
         aria-label="关闭"
         onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-[2px] animate-[fade-up_200ms_ease-out]"
+        className="absolute inset-0 bg-[rgba(220,220,230,0.4)] backdrop-blur-[4px] animate-fade-in"
       />
-      {/* 抽屉本体 */}
+      {/* 抽屉本体：奶白磨砂玻璃 */}
       <div
         className={cn(
-          "absolute right-0 top-0 h-full bg-bg-soft/95 border-l border-white/[0.08] shadow-lift flex flex-col animate-slide-in backdrop-blur-xl",
+          "absolute right-0 top-0 h-full bg-surface/95 border-l border-line shadow-lift flex flex-col animate-slide-in backdrop-blur-xl",
           widthClass,
         )}
       >
-        <header className="flex items-start justify-between gap-3 px-5 pt-5 pb-3 border-b border-white/[0.06]">
+        <header className="flex items-start justify-between gap-3 px-6 pt-5 pb-3 border-b border-line">
           <div className="min-w-0">
-            <div className="font-sans text-[20px] font-semibold text-ink leading-tight">
+            <div className="font-sans text-[19px] font-semibold text-ink leading-tight">
               {title}
             </div>
             {subtitle ? (
@@ -73,9 +73,9 @@ export function Drawer({
             <X size={18} />
           </IconButton>
         </header>
-        <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+        <div className="flex-1 overflow-y-auto px-6 py-4">{children}</div>
         {footer ? (
-          <footer className="px-5 py-3 border-t border-white/[0.06] bg-white/[0.02]">
+          <footer className="px-6 py-3 border-t border-line bg-bg-soft">
             {footer}
           </footer>
         ) : null}

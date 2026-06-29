@@ -4,6 +4,7 @@ import {
   Download,
   Pencil,
   Shield,
+  Trash2,
   Users,
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
@@ -31,6 +32,10 @@ export function TeamSettingDrawer() {
   const renameTeam = useTodoStore((s) => s.renameTeam);
   const updateNickname = useTodoStore((s) => s.updateNickname);
   const exportJSON = useTodoStore((s) => s.exportJSON);
+  const removeMember = useTodoStore((s) => s.removeMember);
+
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const [editingTeam, setEditingTeam] = useState(false);
   const [teamNameDraft, setTeamNameDraft] = useState("");
@@ -89,6 +94,23 @@ export function TeamSettingDrawer() {
     }
   }
 
+  async function handleRemoveMember(memberId: string, nickname: string) {
+    if (busy) return;
+    const ok = window.confirm(
+      `确定要移除队员「${nickname}」吗？\n\n该操作会：\n• 解除其负责任务的指派（任务保留，变为未指派）\n• 删除与该成员的所有私信记录\n• 将该成员从团队中移除\n\n此操作不可撤销。`,
+    );
+    if (!ok) return;
+    try {
+      setBusy(true);
+      await removeMember(memberId);
+      setRemovingId(null);
+    } catch (e: any) {
+      alert(e.message || "移除失败");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <Drawer
       open={open}
@@ -104,7 +126,7 @@ export function TeamSettingDrawer() {
               if (e.key === "Enter") saveTeamName();
               if (e.key === "Escape") setEditingTeam(false);
             }}
-            className="w-full bg-transparent border-b border-accent focus:outline-none"
+            className="w-full bg-transparent border-b border-mint focus:outline-none"
           />
         ) : (
           <div className="flex items-center gap-2">
@@ -185,31 +207,99 @@ export function TeamSettingDrawer() {
           <CountBadge tone="neutral">{teamMembers.length}</CountBadge>
         </div>
         <ul className="space-y-1">
-          {teamMembers.map((m) => (
-            <li
-              key={m.memberId}
-              className="flex items-center justify-between gap-2 px-2 py-1.5 hover:bg-white/[0.04] rounded-lg"
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <Avatar char={m.avatarChar} size="sm" />
-                <span className="text-[13px] text-ink/85 truncate">
-                  {m.nickname}
-                </span>
-                {team.ownerId === m.memberId ? (
-                  <span className="flex items-center gap-0.5 mono-meta text-accent-soft">
-                    <Shield size={10} /> owner
+          {teamMembers.map((m) => {
+            const isOwner = team.ownerId === m.memberId;
+            const isMe = m.memberId === member.memberId;
+            const canRemove = team.ownerId === member.memberId && !isOwner;
+            const isRemovingThis = removingId === m.memberId;
+            return (
+              <li
+                key={m.memberId}
+                className="flex items-center justify-between gap-2 px-2 py-1.5 hover:bg-bg-soft rounded-lg"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <Avatar char={m.avatarChar} size="sm" />
+                  <span className="text-[13px] text-ink truncate">
+                    {m.nickname}
                   </span>
+                  {isOwner ? (
+                    <span className="flex items-center gap-0.5 mono-meta text-[#4a7a68]">
+                      <Shield size={10} /> 队长
+                    </span>
+                  ) : null}
+                  {isMe ? (
+                    <span className="mono-meta text-muted">（我）</span>
+                  ) : null}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="mono-meta">{relativeTime(m.joinedAt)}</span>
+                  <CountBadge tone="neutral">
+                    {stats?.byAssignee[m.memberId] ?? 0}
+                  </CountBadge>
+                  {canRemove ? (
+                    <IconButton
+                      onClick={() => setRemovingId(m.memberId)}
+                      aria-label="移除队员"
+                      title="移除队员"
+                      size="sm"
+                      className="h-7 w-7 text-muted hover:text-[#a85c4a] hover:bg-peach-soft hover:border-peach"
+                    >
+                      <Trash2 size={12} />
+                    </IconButton>
+                  ) : null}
+                </div>
+                {isRemovingThis ? (
+                  <div className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm grid place-items-center p-4 animate-fade-in">
+                    <div className="bg-surface rounded-lg border border-line shadow-lift p-5 max-w-sm w-full animate-pop">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="h-8 w-8 grid place-items-center rounded-full bg-peach-soft text-[#a85c4a]">
+                          <Trash2 size={16} />
+                        </span>
+                        <h4 className="font-sans text-[16px] font-semibold text-ink">
+                          移除队员
+                        </h4>
+                      </div>
+                      <p className="text-[13px] text-ink-2 leading-relaxed mb-4">
+                        确定要移除「<strong className="text-ink">{m.nickname}</strong>」吗？
+                        该操作会：
+                      </p>
+                      <ul className="text-[12px] text-muted leading-relaxed mb-4 space-y-1 pl-4 list-disc">
+                        <li>解除其负责任务的指派（任务保留为未指派）</li>
+                        <li>删除与该成员的所有私信记录</li>
+                        <li>将该成员从团队中移除</li>
+                      </ul>
+                      <p className="text-[11px] text-[#a85c4a] mb-4">此操作不可撤销。</p>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setRemovingId(null)}
+                          disabled={busy}
+                        >
+                          取消
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleRemoveMember(m.memberId, m.nickname)}
+                          disabled={busy}
+                          leadingIcon={<Trash2 size={12} />}
+                        >
+                          {busy ? "移除中…" : "确定移除"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 ) : null}
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="mono-meta">{relativeTime(m.joinedAt)}</span>
-                <CountBadge tone="neutral">
-                  {stats?.byAssignee[m.memberId] ?? 0}
-                </CountBadge>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
+        {team.ownerId === member.memberId ? (
+          <p className="mono-meta mt-2 leading-relaxed">
+            作为队长，你可以移除非队长的成员。被移除成员的任务会变为未指派。
+          </p>
+        ) : null}
       </section>
 
       {/* 数据管理 */}

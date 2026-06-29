@@ -23,11 +23,11 @@ export function Chip({
     <Tag
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 h-6 px-2 text-[11px] font-medium border rounded-lg transition-colors",
+        "inline-flex items-center gap-1.5 h-6 px-2.5 text-[11px] font-medium border rounded-full transition-colors",
         interactive && "cursor-pointer focus-ring",
         active
-          ? "bg-accent/15 text-accent-soft border-accent/40"
-          : "bg-white/[0.04] text-ink/70 border-white/[0.08] hover:border-white/[0.18] hover:text-ink",
+          ? "bg-mint-soft text-[#4a7a68] border-mint"
+          : "bg-bg-soft text-muted border-line hover:border-mint hover:text-ink",
         className,
       )}
     >

@@ -19,18 +19,18 @@ import { DEFAULT_FILTER } from "@/features/filters";
 import type { Priority, SortKey, TaskStatus } from "@/types";
 
 const STATUS_OPTIONS: { value: TaskStatus | "all"; label: string }[] = [
-  { value: "all", label: "全部状态" },
+  { value: "all", label: "全部" },
   { value: "todo", label: "待办" },
   { value: "in_progress", label: "进行中" },
   { value: "done", label: "已完成" },
 ];
 
 const PRIORITY_OPTIONS: { value: Priority | "all"; label: string; color: string }[] = [
-  { value: "all", label: "全部", color: "#8B8BAE" },
-  { value: "urgent", label: "紧急", color: "#EF4444" },
-  { value: "high", label: "高", color: "#C084FC" },
-  { value: "medium", label: "中", color: "#F4F4FB" },
-  { value: "low", label: "低", color: "#8B8BAE" },
+  { value: "all", label: "全部", color: "#7a7a7a" },
+  { value: "urgent", label: "紧急", color: "#e89090" },
+  { value: "high", label: "高", color: "#d9d4f0" },
+  { value: "medium", label: "中", color: "#7eb6d9" },
+  { value: "low", label: "低", color: "#b5c5d4" },
 ];
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
@@ -71,11 +71,11 @@ export function Sidebar() {
     JSON.stringify(filter) !== JSON.stringify(DEFAULT_FILTER);
 
   return (
-    <aside className="hidden lg:flex flex-col w-[260px] shrink-0 bg-bg-soft/40 border-r border-white/[0.06] overflow-y-auto backdrop-blur-xl">
+    <aside className="hidden lg:flex flex-col w-[264px] shrink-0 bg-surface/60 border-r border-line overflow-y-auto backdrop-blur-xl">
       {/* 统计概览 */}
-      <section className="px-5 py-4 border-b border-white/[0.05]">
+      <section className="px-5 py-4 border-b border-line">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[11px] font-medium uppercase tracking-wider text-muted">
+          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted">
             团队概览
           </h2>
           <CountBadge tone="neutral">{stats?.total ?? 0}</CountBadge>
@@ -109,22 +109,21 @@ export function Sidebar() {
       </section>
 
       {/* 筛选 */}
-      <section className="px-5 py-4 border-b border-white/[0.05]">
+      <section className="px-5 py-4 border-b border-line">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[11px] font-medium uppercase tracking-wider text-muted flex items-center gap-1.5">
+          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted flex items-center gap-1.5">
             <FilterIcon size={12} /> 筛选
           </h2>
           {hasFilter ? (
             <button
               onClick={resetFilter}
-              className="mono-meta hover:text-accent-soft flex items-center gap-1"
+              className="mono-meta hover:text-[#4a7a68] flex items-center gap-1"
             >
               <RotateCcw size={11} /> 重置
             </button>
           ) : null}
         </div>
 
-        {/* 状态 */}
         <FilterGroup label="状态">
           <div className="flex flex-wrap gap-1.5">
             {STATUS_OPTIONS.map((opt) => (
@@ -139,7 +138,6 @@ export function Sidebar() {
           </div>
         </FilterGroup>
 
-        {/* 优先级 */}
         <FilterGroup label="优先级">
           <div className="flex flex-wrap gap-1.5">
             {PRIORITY_OPTIONS.map((opt) => (
@@ -155,7 +153,6 @@ export function Sidebar() {
           </div>
         </FilterGroup>
 
-        {/* 负责人 */}
         <FilterGroup label="负责人">
           <div className="flex flex-wrap gap-1.5 items-center">
             <Chip
@@ -174,10 +171,10 @@ export function Sidebar() {
               <button
                 key={m.memberId}
                 onClick={() => patchFilter({ assigneeId: m.memberId })}
-                className={`flex items-center gap-1.5 h-6 px-1.5 border rounded-lg transition-colors ${
+                className={`flex items-center gap-1.5 h-6 px-1.5 border rounded-full transition-colors ${
                   filter.assigneeId === m.memberId
-                    ? "bg-accent/15 text-accent-soft border-accent/40"
-                    : "bg-white/[0.04] border-white/[0.08] hover:border-white/[0.18]"
+                    ? "bg-mint-soft text-[#4a7a68] border-mint"
+                    : "bg-bg-soft border-line hover:border-mint"
                 }`}
                 title={m.nickname}
               >
@@ -190,7 +187,6 @@ export function Sidebar() {
           </div>
         </FilterGroup>
 
-        {/* 标签 */}
         {tags.length > 0 ? (
           <FilterGroup label="标签">
             <div className="flex flex-wrap gap-1.5">
@@ -215,7 +211,7 @@ export function Sidebar() {
       </section>
 
       {/* 排序与显示 */}
-      <section className="px-5 py-4 border-b border-white/[0.05]">
+      <section className="px-5 py-4 border-b border-line">
         <FilterGroup label="排序方式">
           <div className="flex flex-wrap gap-1.5">
             {SORT_OPTIONS.map((opt) => (
@@ -232,10 +228,10 @@ export function Sidebar() {
         <FilterGroup label="显示" className="mt-3">
           <button
             onClick={toggleShowArchived}
-            className={`flex items-center gap-1.5 h-7 px-2.5 text-[12px] border rounded-lg transition-colors w-full justify-between ${
+            className={`flex items-center gap-1.5 h-8 px-3 text-[12px] border rounded-full transition-colors w-full justify-between ${
               showArchived
-                ? "bg-accent/15 text-accent-soft border-accent/40"
-                : "bg-white/[0.04] text-ink/75 border-white/[0.08] hover:border-white/[0.18]"
+                ? "bg-mint-soft text-[#4a7a68] border-mint"
+                : "bg-bg-soft text-ink-2 border-line hover:border-mint"
             }`}
           >
             <span className="flex items-center gap-1.5">
@@ -249,7 +245,7 @@ export function Sidebar() {
       {/* 成员列表 */}
       <section className="px-5 py-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[11px] font-medium uppercase tracking-wider text-muted">
+          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted">
             团队成员 ({teamMembers.length})
           </h2>
         </div>
@@ -257,15 +253,15 @@ export function Sidebar() {
           {teamMembers.map((m) => (
             <li
               key={m.memberId}
-              className="flex items-center justify-between gap-2 px-1 py-1 hover:bg-white/[0.04] rounded-lg"
+              className="flex items-center justify-between gap-2 px-1 py-1 hover:bg-bg-soft rounded-md"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <Avatar char={m.avatarChar} size="sm" />
-                <span className="text-[13px] text-ink/85 truncate">
+                <span className="text-[13px] text-ink truncate">
                   {m.nickname}
                 </span>
                 {team.ownerId === m.memberId ? (
-                  <span className="mono-meta text-accent-soft">owner</span>
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-mint-soft text-[#4a7a68] border border-mint">队长</span>
                 ) : null}
               </div>
               <CountBadge tone="neutral">
@@ -291,14 +287,14 @@ function StatCard({
   tone: "neutral" | "accent" | "success" | "danger";
 }) {
   const toneClass = {
-    neutral: "text-ink/80 border-white/[0.08]",
-    accent: "text-accent-soft border-accent/30 bg-accent/5",
-    success: "text-success border-success/30 bg-success/5",
-    danger: "text-danger border-danger/30 bg-danger/5",
+    neutral: "text-ink-2 border-line bg-surface",
+    accent: "text-[#3a5a78] border-sky bg-sky-soft",
+    success: "text-[#4a7a68] border-mint bg-mint-soft",
+    danger: "text-[#a85c4a] border-peach bg-peach-soft",
   }[tone];
   return (
     <div
-      className={`flex items-center justify-between px-2.5 py-2 border rounded-lg ${toneClass}`}
+      className={`flex items-center justify-between px-2.5 py-2 border rounded-md ${toneClass}`}
     >
       <div className="flex items-center gap-1.5 min-w-0">
         <span className="shrink-0">{icon}</span>
@@ -322,7 +318,7 @@ function FilterGroup({
 }) {
   return (
     <div className={`mb-3 last:mb-0 ${className}`}>
-      <div className="text-[10px] uppercase tracking-wider text-muted/80 mb-1.5">
+      <div className="text-[10px] uppercase tracking-wider text-muted mb-1.5 font-semibold">
         {label}
       </div>
       {children}
@@ -338,7 +334,7 @@ export function MobileFilterBar() {
     JSON.stringify(filter) !== JSON.stringify(DEFAULT_FILTER);
   if (!hasFilter) return null;
   return (
-    <div className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white/[0.04] border-b border-white/[0.05] overflow-x-auto">
+    <div className="lg:hidden flex items-center gap-2 px-4 py-2 bg-bg-soft border-b border-line overflow-x-auto">
       <span className="mono-meta whitespace-nowrap">筛选中：</span>
       {filter.status !== "all" ? (
         <Chip onClick={() => patchFilter({ status: "all" })}>

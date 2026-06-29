@@ -17,8 +17,8 @@ interface TaskCardProps {
 const DUE_TONE_CLASS = {
   neutral: "text-muted",
   warn: "text-warning",
-  danger: "text-danger font-semibold",
-  done: "text-success",
+  danger: "text-[#a85c4a] font-semibold",
+  done: "text-[#4a7a68]",
 } as const;
 
 export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
@@ -69,7 +69,7 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
         onClick={() => openTask(task.taskId)}
         style={{ animationDelay: `${Math.min(index * 30, 240)}ms` }}
         className={cn(
-          "group relative bg-white/[0.04] border border-white/[0.08] hover:border-accent/40 hover:bg-white/[0.07] hover:shadow-glow rounded-lg p-3 cursor-pointer transition-all animate-fade-up",
+          "group relative bg-bg-soft border border-line hover:border-mint hover:bg-surface hover:shadow-md rounded-lg p-3 cursor-pointer transition-all animate-fade-up",
           isDone && "opacity-60",
         )}
       >
@@ -77,10 +77,10 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
         <span
           className={cn(
             "absolute left-0 top-0 bottom-0 w-1 rounded-l-lg",
-            task.priority === "urgent" && "bg-danger",
-            task.priority === "high" && "bg-violet",
-            task.priority === "medium" && "bg-accent/50",
-            task.priority === "low" && "bg-white/15",
+            task.priority === "urgent" && "bg-peach",
+            task.priority === "high" && "bg-lilac",
+            task.priority === "medium" && "bg-mint",
+            task.priority === "low" && "bg-bg-soft",
           )}
         />
         <div className="flex items-start gap-2 pl-1">
@@ -89,14 +89,14 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
             disabled={!canEdit}
             className={cn(
               "mt-0.5 shrink-0",
-              canEdit ? "text-muted hover:text-accent-soft" : "text-dim cursor-not-allowed",
+              canEdit ? "text-muted hover:text-[#4a7a68]" : "text-dim cursor-not-allowed",
             )}
             aria-label="切换状态"
           >
             {isDone ? (
-              <Check size={16} className="text-success" />
+              <Check size={16} className="text-[#4a7a68]" />
             ) : isInProgress ? (
-              <Loader2 size={16} className="text-accent-soft animate-spin" />
+              <Loader2 size={16} className="text-[#4a7a68] animate-spin" />
             ) : (
               <Circle size={16} />
             )}
@@ -120,7 +120,7 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
                 {task.tags.map((t) => (
                   <span
                     key={t}
-                    className="text-[10px] text-accent-soft bg-accent/10 px-1.5 h-4 inline-flex items-center rounded-lg"
+                    className="text-[10px] text-[#4a7a68] bg-mint-soft px-1.5 h-4 inline-flex items-center rounded-lg"
                   >
                     #{t}
                   </span>
@@ -177,7 +177,7 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
       onClick={() => openTask(task.taskId)}
       style={{ animationDelay: `${Math.min(index * 24, 200)}ms` }}
       className={cn(
-        "group grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3.5 py-2.5 border-b border-white/[0.05] last:border-b-0 hover:bg-white/[0.04] cursor-pointer transition-colors animate-fade-up",
+        "group grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3.5 py-2.5 border-b border-line last:border-b-0 hover:bg-bg-soft cursor-pointer transition-colors animate-fade-up",
         isDone && "opacity-55",
       )}
     >
@@ -189,10 +189,10 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
         className={cn(
           "h-5 w-5 shrink-0 grid place-items-center rounded-full border transition-colors",
           isDone
-            ? "bg-success border-success text-white"
+            ? "bg-[#6fbf8e] border-success text-white"
             : canEdit
-              ? "border-white/[0.20] hover:border-accent hover:text-accent-soft"
-              : "border-white/[0.10] text-dim cursor-not-allowed",
+              ? "border-white/[0.20] hover:border-mint hover:text-[#4a7a68]"
+              : "border-line text-dim cursor-not-allowed",
         )}
       >
         {isDone ? <Check size={12} /> : null}
@@ -201,7 +201,7 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           {isInProgress ? (
-            <Loader2 size={12} className="text-accent-soft animate-spin shrink-0" />
+            <Loader2 size={12} className="text-[#4a7a68] animate-spin shrink-0" />
           ) : null}
           <h3
             className={cn(

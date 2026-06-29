@@ -27,12 +27,10 @@ export default function Home() {
   const shareTeamOpen = useUIStore((s) => s.shareTeamOpen);
   const setShareTeam = useUIStore((s) => s.setShareTeam);
 
-  // 启动时从会话恢复身份 + 连接 WS
   useEffect(() => {
     let unsub: (() => void) | undefined;
     (async () => {
       await initFromSession();
-      // 注册 WS 事件监听
       unsub = socket.subscribe((event) => {
         applyServerEvent(event);
       });
@@ -43,7 +41,6 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 用户 / 团队状态变化时控制弹窗
   useEffect(() => {
     if (!user) {
       setAuthModal(true);
@@ -63,11 +60,11 @@ export default function Home() {
 
   if (loading && !team) {
     return (
-      <div className="h-screen grid place-items-center grid-bg">
+      <div className="h-screen grid place-items-center">
         <div className="text-center">
           <div className="relative w-12 h-12 mx-auto mb-4">
-            <div className="absolute inset-0 rounded-full bg-accent-gradient blur-md animate-glow-pulse" />
-            <div className="absolute inset-0 rounded-full border-2 border-white/10 border-t-accent animate-spin" />
+            <div className="absolute inset-0 rounded-full bg-mint-gradient blur-md animate-pulse" />
+            <div className="absolute inset-0 rounded-full border-2 border-line border-t-mint animate-spin" />
           </div>
           <p className="mono-meta">正在连接团队…</p>
         </div>
@@ -77,11 +74,6 @@ export default function Home() {
 
   return (
     <div className="relative flex flex-col h-full min-h-screen">
-      {/* 网格底纹层 */}
-      <div className="pointer-events-none absolute inset-0 grid-bg opacity-50" />
-      {/* 顶部渐变光带 */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-accent-gradient opacity-60" />
-
       <div className="relative z-10 flex flex-col h-full">
         <TeamBar />
         <div className="flex flex-1 overflow-hidden">
@@ -93,7 +85,7 @@ export default function Home() {
       </div>
 
       {error ? (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 px-4 py-2 bg-accent-gradient text-white rounded-lg shadow-glow text-[12px]">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 px-4 py-2 bg-peach-soft text-[#a85c4a] border border-peach rounded-full shadow-md text-[12px] font-medium">
           {error}
         </div>
       ) : null}

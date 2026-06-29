@@ -45,21 +45,21 @@ export function TeamPicker() {
       <button
         aria-label="关闭"
         onClick={() => setOpen(false)}
-        className="absolute inset-0 bg-black/70 backdrop-blur-md animate-[fade-up_200ms_ease-out]"
+        className="absolute inset-0 bg-[rgba(220,220,230,0.4)] backdrop-blur-md animate-[fade-up_200ms_ease-out]"
       />
-      <div className="relative w-full max-w-[460px] bg-bg-soft/90 border border-white/[0.10] shadow-lift rounded-xl overflow-hidden animate-fade-up backdrop-blur-xl">
+      <div className="relative w-full max-w-[460px] bg-surface/95 border border-line shadow-lift rounded-xl overflow-hidden animate-fade-up backdrop-blur-xl">
         {/* 顶部光带 */}
-        <div className="absolute inset-x-0 top-0 h-px bg-accent-gradient opacity-80" />
+        <div className="absolute inset-x-0 top-0 h-px bg-mint-gradient opacity-80" />
         {/* 渐变光晕 */}
-        <div className="pointer-events-none absolute -top-20 -right-20 w-60 h-60 rounded-full bg-accent/15 blur-3xl" />
+        <div className="pointer-events-none absolute -top-20 -right-20 w-60 h-60 rounded-full bg-mint-soft blur-3xl" />
 
         <div className="relative">
           {/* 头部 */}
-          <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-white/[0.06]">
+          <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-line">
             <div className="flex items-center gap-2">
               <div className="relative h-7 w-7">
-                <div className="absolute inset-0 rounded-lg bg-accent-gradient opacity-60 blur-[4px]" />
-                <div className="relative h-7 w-7 grid place-items-center bg-accent-gradient text-white rounded-lg">
+                <div className="absolute inset-0 rounded-lg bg-mint-gradient opacity-60 blur-[4px]" />
+                <div className="relative h-7 w-7 grid place-items-center bg-mint-gradient text-white rounded-lg">
                   <Users size={15} />
                 </div>
               </div>
@@ -91,13 +91,13 @@ export function TeamPicker() {
                         onClick={() => handleEnter(t.teamId, t.myMemberId)}
                         className={`w-full flex items-center gap-3 px-3 h-14 rounded-lg text-left transition-all border ${
                           isActive
-                            ? "bg-accent/10 border-accent/40 shadow-glow"
-                            : "bg-white/[0.03] border-transparent hover:bg-white/[0.06] hover:border-white/[0.12]"
+                            ? "bg-mint-soft border-mint shadow-md"
+                            : "bg-white/[0.03] border-transparent hover:bg-bg-soft hover:border-white/[0.12]"
                         }`}
                       >
                         <div className="relative h-9 w-9 shrink-0">
-                          <div className="absolute inset-0 rounded-lg bg-accent-gradient opacity-40 blur-[3px]" />
-                          <div className="relative h-9 w-9 grid place-items-center bg-accent-gradient text-white rounded-lg">
+                          <div className="absolute inset-0 rounded-lg bg-mint-gradient opacity-40 blur-[3px]" />
+                          <div className="relative h-9 w-9 grid place-items-center bg-mint-gradient text-white rounded-lg">
                             <span className="font-sans font-semibold text-[14px]">
                               {Array.from(t.teamName || "?")[0] ?? "?"}
                             </span>
@@ -109,7 +109,7 @@ export function TeamPicker() {
                               {t.teamName}
                             </span>
                             {isActive ? (
-                              <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-medium text-accent-soft bg-accent/15 border border-accent/30 rounded">
+                              <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-medium text-[#4a7a68] bg-mint-soft border border-mint rounded">
                                 当前
                               </span>
                             ) : null}
@@ -133,7 +133,7 @@ export function TeamPicker() {
           </div>
 
           {/* 底部操作 */}
-          <div className="flex gap-2 px-6 py-4 border-t border-white/[0.06] bg-white/[0.02]">
+          <div className="flex gap-2 px-6 py-4 border-t border-line bg-bg-soft">
             <Button
               variant="secondary"
               size="md"

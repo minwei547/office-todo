@@ -68,14 +68,14 @@ export function ShareTeamModal({ open, onClose }: ShareTeamModalProps) {
       <button
         aria-label="关闭"
         onClick={onClose}
-        className="absolute inset-0 bg-ink/40 backdrop-blur-md animate-[fade-up_200ms_ease-out]"
+        className="absolute inset-0 bg-[rgba(220,220,230,0.4)] backdrop-blur-md animate-[fade-up_200ms_ease-out]"
       />
-      <div className="relative w-full max-w-[440px] bg-bg-soft/95 border border-white/[0.10] shadow-lift rounded-xl backdrop-blur-xl overflow-hidden animate-fade-up">
-        <div className="absolute inset-x-0 top-0 h-px bg-accent-gradient opacity-80" />
+      <div className="relative w-full max-w-[440px] bg-surface/95 border border-line shadow-lift rounded-xl backdrop-blur-xl overflow-hidden animate-fade-up">
+        <div className="absolute inset-x-0 top-0 h-px bg-mint-gradient opacity-80" />
         {/* 头部 */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-line">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 grid place-items-center bg-accent-gradient text-white rounded-lg">
+            <div className="h-6 w-6 grid place-items-center bg-mint-gradient text-white rounded-lg">
               <Link2 size={13} />
             </div>
             <h2 className="biz-title text-[18px]">邀请同事加入</h2>
@@ -125,7 +125,7 @@ export function ShareTeamModal({ open, onClose }: ShareTeamModalProps) {
                 <div className="flex items-center justify-center gap-1.5 mb-3 text-[11px] font-medium uppercase tracking-wider text-muted">
                   <QrCode size={12} /> 扫码加入（手机直接扫）
                 </div>
-                <div className="inline-block p-3 bg-bg-soft border border-white/[0.08] rounded-lg">
+                <div className="inline-block p-3 bg-bg-soft border border-line rounded-lg">
                   {qrSrc ? (
                     <img
                       src={qrSrc}
@@ -135,7 +135,7 @@ export function ShareTeamModal({ open, onClose }: ShareTeamModalProps) {
                       className="block"
                     />
                   ) : (
-                    <div className="w-[220px] h-[220px] grid place-items-center bg-white/[0.04]">
+                    <div className="w-[220px] h-[220px] grid place-items-center bg-bg-soft">
                       <span className="mono-meta">生成中…</span>
                     </div>
                   )}
@@ -179,7 +179,7 @@ export function ShareTeamModal({ open, onClose }: ShareTeamModalProps) {
 
               {/* 当前昵称 */}
               {member ? (
-                <p className="text-center text-[11px] text-muted border-t border-white/[0.06] pt-3">
+                <p className="text-center text-[11px] text-muted border-t border-line pt-3">
                   当前身份：{member.nickname} · 已加入团队
                 </p>
               ) : null}

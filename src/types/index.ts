@@ -78,6 +78,7 @@ export interface DirectMessage {
   senderId: string;
   receiverId: string;
   content: string;
+  kind?: "text" | "image"; // 消息类型：文本/图片，缺省视为 text（兼容旧数据）
   timestamp: number;
   read: boolean;
 }

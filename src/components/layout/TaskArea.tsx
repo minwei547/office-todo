@@ -67,16 +67,16 @@ export function TaskArea() {
           <div className="relative flex-1 min-w-[200px] max-w-md">
             <Search
               size={14}
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"
             />
             <input
               value={filter.keyword}
               onChange={(e) => patchFilter({ keyword: e.target.value })}
               placeholder="搜索任务标题、描述、标签…"
-              className="w-full h-9 pl-8 pr-3 text-[13px] bg-white/[0.04] border border-white/[0.10] rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/40 placeholder:text-muted/70"
+              className="w-full h-9 pl-9 pr-3 text-[13px] bg-bg-soft border border-line rounded-md focus:outline-none focus:border-mint focus:bg-surface focus:ring-4 focus:ring-mint/25 placeholder:text-dim transition-all"
             />
           </div>
-          <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.10] rounded-lg p-0.5">
+          <div className="flex items-center gap-1 bg-bg-soft border border-line rounded-md p-1">
             <ViewButton
               active={view === "list"}
               onClick={() => setView("list")}
@@ -92,7 +92,6 @@ export function TaskArea() {
           </div>
         </div>
 
-        {/* 内容区 */}
         {visible.length === 0 ? (
           <div className="grid place-items-center py-16">
             <EmptyState
@@ -113,7 +112,6 @@ export function TaskArea() {
           />
         )}
 
-        {/* 底部脚注 */}
         <div className="pt-4 pb-2 mono-meta text-center">
           共 {visible.length} 项 · {STATUS_LABEL.todo} / {STATUS_LABEL.in_progress} / {STATUS_LABEL.done}
           {showArchived ? " · 含归档" : ""}
@@ -137,9 +135,9 @@ function ViewButton({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-1.5 h-7 px-2.5 text-[12px] font-medium rounded-lg transition-colors ${
+      className={`flex items-center gap-1.5 h-7 px-3 text-[12px] font-medium rounded transition-colors ${
         active
-          ? "bg-accent-gradient text-white shadow-glow"
+          ? "bg-surface text-ink shadow-sm"
           : "text-muted hover:text-ink"
       }`}
     >
@@ -152,18 +150,18 @@ function ViewButton({
 function EmptyState({ title, hint }: { title: string; hint: string }) {
   return (
     <div className="text-center max-w-sm">
-      {/* 渐变光圈插画 */}
+      {/* 马卡龙光圈插画 */}
       <div className="relative mx-auto mb-4 w-32 h-20">
         <div className="absolute inset-0 grid place-items-center">
-          <div className="absolute w-20 h-20 rounded-full bg-accent-gradient opacity-20 blur-2xl animate-glow-pulse" />
+          <div className="absolute w-20 h-20 rounded-full bg-mint-gradient opacity-30 blur-2xl animate-pulse" />
           <svg
             viewBox="0 0 120 80"
-            className="relative w-32 h-auto text-accent-soft"
+            className="relative w-32 h-auto text-[#4a7a68]"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.2"
           >
-            <rect x="20" y="14" width="80" height="56" rx="6" />
+            <rect x="20" y="14" width="80" height="56" rx="8" />
             <path d="M30 30 H86 M30 44 H70 M30 56 H60" strokeLinecap="round" />
             <circle cx="92" cy="20" r="3" fill="currentColor" stroke="none" />
             <path d="M14 70 L26 60 L38 70" strokeLinecap="round" strokeLinejoin="round" />

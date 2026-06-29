@@ -9,32 +9,37 @@ interface AvatarProps {
 
 const sizeClass = {
   xs: "h-5 w-5 text-[10px]",
-  sm: "h-6 w-6 text-[11px]",
-  md: "h-8 w-8 text-[13px]",
-  lg: "h-10 w-10 text-[15px]",
+  sm: "h-7 w-7 text-[11px]",
+  md: "h-9 w-9 text-[13px]",
+  lg: "h-12 w-12 text-[15px]",
 };
 
-// 用字符串生成稳定色相，让不同昵称头像有差异化色调
-function hueFromChar(char: string): number {
+// 马卡龙色板，循环使用
+const MACARON = [
+  { bg: "linear-gradient(135deg, #c8e9dd 0%, #a8d8c0 100%)", fg: "#2a5a4a" }, // 薄荷
+  { bg: "linear-gradient(135deg, #c6e2f5 0%, #a8d0eb 100%)", fg: "#2a4a6a" }, // 天蓝
+  { bg: "linear-gradient(135deg, #d9d4f0 0%, #b8b3dc 100%)", fg: "#5a4a78" }, // 丁香
+  { bg: "linear-gradient(135deg, #f5d9c8 0%, #e8b8a0 100%)", fg: "#7a5c4a" }, // 蜜桃
+  { bg: "linear-gradient(135deg, #f3e9c6 0%, #e0d09a 100%)", fg: "#6a5c3a" }, // 奶油
+  { bg: "linear-gradient(135deg, #c8e9dd 0%, #c6e2f5 100%)", fg: "#2a4a5a" }, // 薄荷+天蓝
+];
+
+function idxFromChar(char: string): number {
   const code = char.charCodeAt(0) ?? 0;
-  return (code * 37) % 360;
+  return code % MACARON.length;
 }
 
 export function Avatar({ char, size = "sm", className, title }: AvatarProps) {
-  const hue = hueFromChar(char);
-  // 深色底 + 高饱和前景，呼应 trae.cn 的科技玻璃质感
-  const bg = `hsl(${hue} 60% 22% / 0.6)`;
-  const fg = `hsl(${hue} 80% 75%)`;
-  const border = `hsl(${hue} 60% 55% / 0.4)`;
+  const c = MACARON[idxFromChar(char)];
   return (
     <span
       title={title}
       className={cn(
-        "inline-flex items-center justify-center rounded-full font-mono font-semibold uppercase select-none border backdrop-blur-sm",
+        "inline-flex items-center justify-center rounded-full font-sans font-semibold uppercase select-none border-2 border-surface shadow-sm",
         sizeClass[size],
         className,
       )}
-      style={{ backgroundColor: bg, color: fg, borderColor: border }}
+      style={{ background: c.bg, color: c.fg }}
     >
       {char}
     </span>

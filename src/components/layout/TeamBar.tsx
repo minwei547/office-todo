@@ -37,21 +37,19 @@ export function TeamBar() {
     if (currentTeamId) refreshTeam(currentTeamId);
   }
 
-  // 显示昵称：优先账号昵称，回退到当前团队成员昵称
   const displayName = user?.nickname || member?.nickname || "";
   const displayChar = member?.avatarChar || displayName.slice(0, 1) || "?";
 
   return (
-    <header className="relative flex items-center gap-3 px-5 h-14 bg-bg-soft/60 border-b border-white/[0.06] backdrop-blur-xl">
+    <header className="relative flex items-center gap-3 px-5 h-16 bg-surface/70 border-b border-line backdrop-blur-xl">
       {/* 左：Logo + 团队名 */}
       <div className="flex items-center gap-2.5 min-w-0">
-        <div className="relative h-7 w-7 shrink-0">
-          <div className="absolute inset-0 rounded-lg bg-accent-gradient opacity-60 blur-[6px]" />
-          <div className="relative h-7 w-7 grid place-items-center bg-accent-gradient text-white rounded-lg shadow-glow">
-            <span className="font-sans font-semibold text-[14px] leading-none">辑</span>
+        <div className="relative h-8 w-8 shrink-0">
+          <div className="relative h-8 w-8 grid place-items-center bg-mint-gradient text-[#2a5a4a] rounded-xl shadow-sm">
+            <span className="font-sans font-bold text-[14px] leading-none">辑</span>
           </div>
         </div>
-        <h1 className="biz-title text-[18px] text-ink truncate max-w-[260px]">
+        <h1 className="biz-title text-[17px] text-ink truncate max-w-[260px]">
           {team?.teamName ?? "未加入团队"}
         </h1>
         {team ? (
@@ -59,10 +57,8 @@ export function TeamBar() {
         ) : null}
       </div>
 
-      {/* 中：占位 */}
       <div className="flex-1" />
 
-      {/* 右：邀请口令 + 昵称 + 操作 */}
       {team && member ? (
         <div className="flex items-center gap-2">
           <Button
@@ -83,9 +79,9 @@ export function TeamBar() {
               <Shuffle size={16} />
             </IconButton>
           ) : null}
-          <div className="hidden sm:flex items-center gap-1.5 pl-2 border-l border-white/[0.08]">
+          <div className="hidden sm:flex items-center gap-1.5 pl-2 border-l border-line">
             <Avatar char={displayChar} size="sm" />
-            <span className="text-[13px] text-ink/85 font-medium">
+            <span className="text-[13px] text-ink font-medium">
               {displayName}
             </span>
           </div>
@@ -104,7 +100,7 @@ export function TeamBar() {
           >
             <MessageSquare size={18} />
             {unread > 0 ? (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 inline-flex items-center justify-center bg-accent-gradient text-white text-[10px] font-mono font-semibold rounded-full shadow-glow">
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 inline-flex items-center justify-center bg-peach text-[#5a3a2a] text-[10px] font-mono font-semibold rounded-full shadow-sm">
                 {unread > 9 ? "9+" : unread}
               </span>
             ) : null}

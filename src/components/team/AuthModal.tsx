@@ -70,22 +70,22 @@ export function AuthModal() {
       <button
         aria-label="关闭"
         onClick={() => setOpen(false)}
-        className="absolute inset-0 bg-black/70 backdrop-blur-md animate-[fade-up_200ms_ease-out]"
+        className="absolute inset-0 bg-[rgba(220,220,230,0.4)] backdrop-blur-md animate-[fade-up_200ms_ease-out]"
       />
-      <div className="relative w-full max-w-[420px] bg-bg-soft/90 border border-white/[0.10] shadow-lift rounded-xl overflow-hidden animate-fade-up backdrop-blur-xl">
+      <div className="relative w-full max-w-[420px] bg-surface/95 border border-line shadow-lift rounded-xl overflow-hidden animate-fade-up backdrop-blur-xl">
         {/* 顶部装饰光带 */}
-        <div className="absolute inset-x-0 top-0 h-px bg-accent-gradient opacity-80" />
+        <div className="absolute inset-x-0 top-0 h-px bg-mint-gradient opacity-80" />
         {/* 渐变光晕 */}
         <div className="pointer-events-none absolute -top-20 -right-20 w-60 h-60 rounded-full bg-accent/20 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-violet/15 blur-3xl" />
 
         <div className="relative">
           {/* 头部 */}
-          <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-white/[0.06]">
+          <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-line">
             <div className="flex items-center gap-2">
               <div className="relative h-7 w-7">
-                <div className="absolute inset-0 rounded-lg bg-accent-gradient opacity-60 blur-[4px]" />
-                <div className="relative h-7 w-7 grid place-items-center bg-accent-gradient text-white rounded-lg">
+                <div className="absolute inset-0 rounded-lg bg-mint-gradient opacity-60 blur-[4px]" />
+                <div className="relative h-7 w-7 grid place-items-center bg-mint-gradient text-white rounded-lg">
                   <span className="font-sans font-semibold text-[13px]">协</span>
                 </div>
               </div>
@@ -99,7 +99,7 @@ export function AuthModal() {
           </div>
 
           {/* Tab 切换 */}
-          <div className="flex border-b border-white/[0.06]">
+          <div className="flex border-b border-line">
             <TabButton
               active={tab === "login"}
               onClick={() => setTab("login")}
@@ -171,7 +171,7 @@ export function AuthModal() {
             ) : null}
 
             {error ? (
-              <div className="px-3 py-2 text-[12px] text-danger bg-danger/10 border border-danger/30 rounded-lg">
+              <div className="px-3 py-2 text-[12px] text-[#a85c4a] bg-peach-soft border border-peach/30 rounded-lg">
                 {error}
               </div>
             ) : null}
@@ -195,7 +195,7 @@ export function AuthModal() {
               {tab === "register" ? (
                 <button
                   type="button"
-                  className="text-accent-soft hover:underline"
+                  className="text-[#4a7a68] hover:underline"
                   onClick={() => setTab("login")}
                 >
                   已有账号？去登录
@@ -203,7 +203,7 @@ export function AuthModal() {
               ) : (
                 <button
                   type="button"
-                  className="text-accent-soft hover:underline"
+                  className="text-[#4a7a68] hover:underline"
                   onClick={() => setTab("register")}
                 >
                   还没账号？去注册
@@ -233,7 +233,7 @@ function TabButton({
       onClick={onClick}
       className={`flex-1 flex items-center justify-center gap-1.5 h-10 text-[13px] font-medium border-b-2 transition-colors ${
         active
-          ? "border-accent text-ink"
+          ? "border-mint text-ink"
           : "border-transparent text-dim hover:text-muted"
       }`}
     >

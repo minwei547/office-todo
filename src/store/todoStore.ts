@@ -35,6 +35,12 @@ interface TodoState {
   activities: Record<string, Activity>;
   notes: Record<string, Note>;
   messages: Record<string, DirectMessage>;
+  // 会话分页元信息：peerId -> { hasMore, oldestTimestamp, loadingMore }
+  conversationMeta: Record<string, {
+    hasMore: boolean;
+    oldestTimestamp: number | null;
+    loadingMore: boolean;
+  }>;
   loading: boolean;
   error: string | null;
 
@@ -61,6 +67,7 @@ interface TodoState {
   joinTeam: (inviteCode: string, nickname: string) => Promise<void>;
   renameTeam: (teamId: string, name: string) => Promise<void>;
   updateNickname: (nickname: string) => Promise<void>;
+  removeMember: (memberId: string) => Promise<void>;
 
   // 任务
   addTask: (input: {
@@ -85,7 +92,9 @@ interface TodoState {
   // 私信
   refreshConversations: () => Promise<void>;
   refreshConversation: (peerId: string) => Promise<void>;
+  loadOlderMessages: (peerId: string) => Promise<void>;
   sendDM: (receiverId: string, content: string) => Promise<void>;
+  sendImageDM: (receiverId: string, file: File) => Promise<void>;
   markConversationRead: (peerId: string) => Promise<void>;
 
   // WS 推送合并
@@ -136,6 +145,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
   activities: {},
   notes: {},
   messages: {},
+  conversationMeta: {},
   loading: false,
   error: null,
 
@@ -243,6 +253,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
       activities: {},
       notes: {},
       messages: {},
+      conversationMeta: {},
     });
   },
 
@@ -306,6 +317,32 @@ export const useTodoStore = create<TodoState>((set, get) => ({
       },
     }));
     await api.updateNickname(cur, nickname);
+  },
+
+  removeMember: async (memberId) => {
+    const teamId = get().currentTeamId;
+    if (!teamId) throw new Error("未进入团队");
+    await api.removeMember(memberId);
+    // 本地清理：移除成员 + 解除其负责任务的指派 + 移除相关私信 + 清理会话元信息
+    set((s) => {
+      const members = { ...s.members };
+      delete members[memberId];
+      const tasks = { ...s.tasks };
+      for (const [id, t] of Object.entries(tasks)) {
+        if (t.assigneeId === memberId) {
+          tasks[id] = { ...t, assigneeId: null };
+        }
+      }
+      const messages = { ...s.messages };
+      for (const [id, m] of Object.entries(messages)) {
+        if (m.senderId === memberId || m.receiverId === memberId) {
+          delete messages[id];
+        }
+      }
+      const conversationMeta = { ...s.conversationMeta };
+      delete conversationMeta[memberId];
+      return { members, tasks, messages, conversationMeta };
+    });
   },
 
   // 任务
@@ -444,16 +481,88 @@ export const useTodoStore = create<TodoState>((set, get) => ({
   },
 
   refreshConversation: async (peerId) => {
-    const { messages } = await api.getConversation(peerId);
+    const me = get().currentMemberId;
+    if (!me) return;
+    const PAGE = 50;
+    const { messages, hasMore } = await api.getConversation(peerId, PAGE);
+    // 用全量覆盖该会话的消息，避免只显示一条
+    const convId = [me, peerId].sort().join(":");
     const map: Record<string, DirectMessage> = {};
     for (const m of messages) map[m.messageId] = m;
-    set((s) => ({ messages: { ...s.messages, ...map } }));
+    // 最早消息时间戳：升序数组的第一条
+    const oldestTimestamp = messages.length ? messages[0].timestamp : null;
+    set((s) => {
+      // 先清除该会话所有旧消息，再用最新结果覆盖
+      const cleaned: Record<string, DirectMessage> = {};
+      for (const [id, m] of Object.entries(s.messages)) {
+        if (m.conversationId !== convId) cleaned[id] = m;
+      }
+      return {
+        messages: { ...cleaned, ...map },
+        conversationMeta: {
+          ...s.conversationMeta,
+          [peerId]: { hasMore, oldestTimestamp, loadingMore: false },
+        },
+      };
+    });
+  },
+
+  // 加载更早的历史消息（分页向上翻）
+  loadOlderMessages: async (peerId) => {
+    const me = get().currentMemberId;
+    if (!me) return;
+    const meta = get().conversationMeta[peerId];
+    if (!meta || !meta.hasMore || meta.loadingMore || !meta.oldestTimestamp) return;
+    set((s) => ({
+      conversationMeta: {
+        ...s.conversationMeta,
+        [peerId]: { ...meta, loadingMore: true },
+      },
+    }));
+    try {
+      const PAGE = 50;
+      const { messages, hasMore } = await api.getConversation(
+        peerId,
+        PAGE,
+        meta.oldestTimestamp,
+      );
+      const map: Record<string, DirectMessage> = {};
+      for (const m of messages) map[m.messageId] = m;
+      const newOldest = messages.length ? messages[0].timestamp : meta.oldestTimestamp;
+      set((s) => ({
+        messages: { ...s.messages, ...map },
+        conversationMeta: {
+          ...s.conversationMeta,
+          [peerId]: {
+            hasMore,
+            oldestTimestamp: newOldest,
+            loadingMore: false,
+          },
+        },
+      }));
+    } catch (e) {
+      // 失败回滚 loadingMore
+      set((s) => ({
+        conversationMeta: {
+          ...s.conversationMeta,
+          [peerId]: { ...s.conversationMeta[peerId], loadingMore: false },
+        },
+      }));
+      throw e;
+    }
   },
 
   sendDM: async (receiverId, content) => {
     const me = get().currentMemberId;
     if (!me) return;
     const { message } = await api.sendMessage(receiverId, content);
+    set((s) => ({ messages: { ...s.messages, [message.messageId]: message } }));
+  },
+
+  sendImageDM: async (receiverId, file) => {
+    const me = get().currentMemberId;
+    if (!me) return;
+    const { message } = await api.sendImageMessage(receiverId, file);
     set((s) => ({ messages: { ...s.messages, [message.messageId]: message } }));
   },
 

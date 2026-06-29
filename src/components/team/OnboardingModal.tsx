@@ -93,23 +93,23 @@ export function OnboardingModal() {
       <button
         aria-label="关闭"
         onClick={() => setOpen(false)}
-        className="absolute inset-0 bg-black/70 backdrop-blur-md animate-[fade-up_200ms_ease-out]"
+        className="absolute inset-0 bg-[rgba(220,220,230,0.4)] backdrop-blur-md animate-[fade-up_200ms_ease-out]"
       />
-      <div className="relative w-full max-w-[460px] bg-bg-soft/90 border border-white/[0.10] shadow-lift rounded-xl overflow-hidden animate-fade-up backdrop-blur-xl">
+      <div className="relative w-full max-w-[460px] bg-surface/95 border border-line shadow-lift rounded-xl overflow-hidden animate-fade-up backdrop-blur-xl">
         {/* 顶部光带 */}
-        <div className="absolute inset-x-0 top-0 h-px bg-accent-gradient opacity-80" />
+        <div className="absolute inset-x-0 top-0 h-px bg-mint-gradient opacity-80" />
         {/* 渐变光晕 */}
-        <div className="pointer-events-none absolute -top-20 -left-20 w-60 h-60 rounded-full bg-accent/15 blur-3xl" />
+        <div className="pointer-events-none absolute -top-20 -left-20 w-60 h-60 rounded-full bg-mint-soft blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 -right-20 w-60 h-60 rounded-full bg-violet/15 blur-3xl" />
 
         <div className="relative">
           {/* 头部 */}
-          <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-white/[0.06]">
+          <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-line">
             <div>
               <div className="flex items-center gap-2">
                 <div className="relative h-7 w-7">
-                  <div className="absolute inset-0 rounded-lg bg-accent-gradient opacity-60 blur-[4px]" />
-                  <div className="relative h-7 w-7 grid place-items-center bg-accent-gradient text-white rounded-lg">
+                  <div className="absolute inset-0 rounded-lg bg-mint-gradient opacity-60 blur-[4px]" />
+                  <div className="relative h-7 w-7 grid place-items-center bg-mint-gradient text-white rounded-lg">
                     <span className="font-sans font-semibold text-[13px]">协</span>
                   </div>
                 </div>
@@ -127,7 +127,7 @@ export function OnboardingModal() {
           </div>
 
           {/* Tab 切换 */}
-          <div className="flex border-b border-white/[0.06]">
+          <div className="flex border-b border-line">
             <TabButton
               active={tab === "create"}
               onClick={() => setTab("create")}
@@ -195,7 +195,7 @@ export function OnboardingModal() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") submit();
                   }}
-                  className="w-full bg-white/[0.04] border border-white/[0.10] px-3 h-12 text-[20px] tracking-[0.5em] font-mono font-medium text-center text-ink placeholder:text-dim rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/40"
+                  className="w-full bg-bg-soft border border-line px-3 h-12 text-[20px] tracking-[0.5em] font-mono font-medium text-center text-ink placeholder:text-dim rounded-lg focus:outline-none focus:border-mint focus:ring-1 focus:ring-mint/50"
                 />
                 <p className="text-[11px] text-dim mt-1">
                   向团队所有者索取 6 位邀请码
@@ -204,7 +204,7 @@ export function OnboardingModal() {
             )}
 
             {error ? (
-              <div className="px-3 py-2 text-[12px] text-danger bg-danger/10 border border-danger/30 rounded-lg">
+              <div className="px-3 py-2 text-[12px] text-[#a85c4a] bg-peach-soft border border-peach/30 rounded-lg">
                 {error}
               </div>
             ) : null}
@@ -250,7 +250,7 @@ function TabButton({
       onClick={onClick}
       className={`flex-1 flex items-center justify-center gap-1.5 h-10 text-[13px] font-medium border-b-2 transition-colors ${
         active
-          ? "border-accent text-ink"
+          ? "border-mint text-ink"
           : "border-transparent text-dim hover:text-muted"
       }`}
     >
