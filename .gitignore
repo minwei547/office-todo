@@ -1,15 +1,8 @@
 # 依赖
 node_modules/
-server/node_modules/
 
 # 构建产物
 dist/
-server/dist/
-
-# 本地数据库（沙箱测试用）
-*.db
-*.db-*
-office-todo.db
 
 # 日志
 *.log
