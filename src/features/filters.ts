@@ -81,10 +81,18 @@ export function filterAndSort(
   filter: TaskFilter,
   sort: SortKey,
   includeArchived = false,
+  currentMemberId?: string | null,
+  isOwner?: boolean,
 ): Task[] {
-  const list = Object.values(tasks).filter(
-    (t) => t.teamId === teamId && (includeArchived || !t.archived),
-  );
+  const list = Object.values(tasks).filter((t) => {
+    if (t.teamId !== teamId) return false;
+    if (!includeArchived && t.archived) return false;
+    // 角色权限：队员只能看到分配给自己的任务；队长可以看到全部任务
+    if (!isOwner && currentMemberId) {
+      if (t.assigneeId && t.assigneeId !== currentMemberId) return false;
+    }
+    return true;
+  });
   const matched = list.filter((t) => matchFilter(t, filter));
   return sortTasks(matched, sort);
 }

@@ -47,7 +47,7 @@ export default function Home() {
     return (
       <div className="h-screen grid place-items-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-ink/20 border-t-accent rounded-full animate-spin mx-auto mb-3" />
+          <div className="w-8 h-8 border-2 border-slate-300/20 border-t-blue-600 rounded-full animate-spin mx-auto mb-3" />
           <p className="mono-meta">正在连接团队…</p>
         </div>
       </div>
@@ -55,7 +55,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col h-full min-h-screen bg-paper">
+    <div className="flex flex-col h-full min-h-screen bg-slate-50">
       <TeamBar />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
@@ -65,7 +65,7 @@ export default function Home() {
       </div>
 
       {error ? (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 px-4 py-2 bg-accent text-paper rounded-[2px] shadow-lift text-[12px]">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-lift text-[12px]">
           {error}
         </div>
       ) : null}

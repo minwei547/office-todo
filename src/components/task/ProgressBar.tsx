@@ -19,7 +19,7 @@ export function ProgressBar({
     status === "done" || clamped >= 100
       ? "bg-success"
       : clamped > 0
-        ? "bg-accent"
+        ? "bg-blue-600"
         : "bg-ink/20";
   return (
     <div className={cn("flex items-center gap-2", className)}>

@@ -9,28 +9,32 @@ export default {
     },
     extend: {
       colors: {
-        paper: "#F5F1E8",
-        ink: "#1A1A1A",
+        bg: "#f1f5f9",
+        ink: "#0f172a",
         accent: {
-          DEFAULT: "#C8412C",
-          soft: "#E58A7A",
+          DEFAULT: "#2563eb",
+          soft: "#93c5fd",
         },
         success: {
-          DEFAULT: "#3A6B5E",
-          soft: "#9DBDB4",
+          DEFAULT: "#059669",
+          soft: "#6ee7b7",
         },
-        border: "#D9D2BF",
-        muted: "#6B6358",
-        chip: "#ECE5D2",
+        border: "#cbd5e1",
+        muted: "#64748b",
+        chip: "#e2e8f0",
       },
       fontFamily: {
-        display: ['Fraunces', 'serif'],
+        sans: ['Inter', 'sans-serif'],
+        display: ['Inter', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       boxShadow: {
-        paper: "0 1px 0 0 rgba(26,26,26,0.06), 0 2px 6px -2px rgba(26,26,26,0.08)",
-        lift: "0 6px 24px -8px rgba(26,26,26,0.18)",
+        paper: "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)",
+        lift: "0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06)",
+      },
+      borderRadius: {
+        DEFAULT: "0.5rem",
       },
       keyframes: {
         "slide-in": {

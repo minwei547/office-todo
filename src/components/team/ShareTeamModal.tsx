@@ -70,14 +70,14 @@ export function ShareTeamModal({ open, onClose }: ShareTeamModalProps) {
         onClick={onClose}
         className="absolute inset-0 bg-ink/40 backdrop-blur-[2px] animate-[fade-up_200ms_ease-out]"
       />
-      <div className="relative w-full max-w-[440px] bg-paper border border-ink/20 shadow-lift rounded-[2px] overflow-hidden animate-fade-up">
+      <div className="relative w-full max-w-[440px] bg-slate-50 border border-slate-300/20 shadow-lift rounded-lg overflow-hidden animate-fade-up">
         {/* 头部 */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-ink/10">
+        <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-300/10">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 grid place-items-center bg-ink text-paper rounded-[2px]">
+            <div className="h-6 w-6 grid place-items-center bg-ink text-white rounded-lg">
               <Link2 size={13} />
             </div>
-            <h2 className="editorial-title text-[18px]">邀请同事加入</h2>
+            <h2 className="biz-title text-[18px]">邀请同事加入</h2>
           </div>
           <IconButton onClick={onClose} aria-label="关闭">
             <X size={18} />
@@ -88,24 +88,24 @@ export function ShareTeamModal({ open, onClose }: ShareTeamModalProps) {
           {team ? (
             <>
               {/* 邀请码 + 团队名 */}
-              <section className="paper-card rounded-[2px] p-4">
+              <section className="biz-card rounded-lg p-4">
                 <div className="text-[11px] font-medium uppercase tracking-wider text-muted mb-2">
                   团队
                 </div>
-                <div className="font-display text-[18px] text-ink mb-3">
+                <div className="font-sans text-[18px] text-slate-900 mb-3">
                   {team.teamName}
                 </div>
                 <div className="text-[11px] font-medium uppercase tracking-wider text-muted mb-1.5">
                   邀请码
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-[26px] tracking-[0.4em] font-semibold text-ink">
+                  <span className="font-mono text-[26px] tracking-[0.4em] font-semibold text-slate-900">
                     {team.inviteCode}
                   </span>
                   <button
                     onClick={() => copy(team.inviteCode, "code")}
                     aria-label="复制邀请码"
-                    className="text-muted hover:text-ink p-1"
+                    className="text-muted hover:text-slate-900 p-1"
                   >
                     {copied === "code" ? (
                       <Check size={16} className="text-success" />
@@ -124,7 +124,7 @@ export function ShareTeamModal({ open, onClose }: ShareTeamModalProps) {
                 <div className="flex items-center justify-center gap-1.5 mb-3 text-[11px] font-medium uppercase tracking-wider text-muted">
                   <QrCode size={12} /> 扫码加入（手机直接扫）
                 </div>
-                <div className="inline-block p-3 bg-paper border border-ink/15 rounded-[2px]">
+                <div className="inline-block p-3 bg-slate-50 border border-slate-300/15 rounded-lg">
                   {qrSrc ? (
                     <img
                       src={qrSrc}
@@ -152,7 +152,7 @@ export function ShareTeamModal({ open, onClose }: ShareTeamModalProps) {
                   </label>
                   <button
                     onClick={() => copy(inviteLink, "url")}
-                    className="text-[11px] text-muted hover:text-ink flex items-center gap-1"
+                    className="text-[11px] text-muted hover:text-slate-900 flex items-center gap-1"
                   >
                     {copied === "url" ? (
                       <>
@@ -178,7 +178,7 @@ export function ShareTeamModal({ open, onClose }: ShareTeamModalProps) {
 
               {/* 当前昵称 */}
               {member ? (
-                <p className="text-center text-[11px] text-muted border-t border-ink/10 pt-3">
+                <p className="text-center text-[11px] text-muted border-t border-slate-300/10 pt-3">
                   当前身份：{member.nickname} · 已加入团队
                 </p>
               ) : null}

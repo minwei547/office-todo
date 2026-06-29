@@ -12,6 +12,7 @@ import { STATUS_LABEL } from "@/types";
 export function TaskArea() {
   const team = useTodoStore(selectCurrentTeam);
   const tasks = useTodoStore((s) => s.tasks);
+  const currentMemberId = useTodoStore((s) => s.currentMemberId);
   const view = useUIStore((s) => s.view);
   const setView = useUIStore((s) => s.setView);
   const filter = useUIStore((s) => s.filter);
@@ -19,12 +20,14 @@ export function TaskArea() {
   const showArchived = useUIStore((s) => s.showArchived);
   const patchFilter = useUIStore((s) => s.patchFilter);
 
+  const isOwner = !!(team && currentMemberId && team.ownerId === currentMemberId);
+
   const visible = useMemo(
     () =>
       team
-        ? filterAndSort(tasks, team.teamId, filter, sort, showArchived)
+        ? filterAndSort(tasks, team.teamId, filter, sort, showArchived, currentMemberId, isOwner)
         : [],
-    [tasks, team, filter, sort, showArchived],
+    [tasks, team, filter, sort, showArchived, currentMemberId, isOwner],
   );
 
   const grouped = useMemo(() => groupByStatus(visible), [visible]);
@@ -70,10 +73,10 @@ export function TaskArea() {
               value={filter.keyword}
               onChange={(e) => patchFilter({ keyword: e.target.value })}
               placeholder="搜索任务标题、描述、标签…"
-              className="w-full h-9 pl-8 pr-3 text-[13px] bg-chip/40 border border-ink/15 rounded-[2px] focus:outline-none focus:border-accent"
+              className="w-full h-9 pl-8 pr-3 text-[13px] bg-chip/40 border border-slate-300/15 rounded-lg focus:outline-none focus:border-blue-600"
             />
           </div>
-          <div className="flex items-center gap-1 bg-chip/40 border border-ink/15 rounded-[2px] p-0.5">
+          <div className="flex items-center gap-1 bg-chip/40 border border-slate-300/15 rounded-lg p-0.5">
             <ViewButton
               active={view === "list"}
               onClick={() => setView("list")}
@@ -134,10 +137,10 @@ function ViewButton({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-1.5 h-7 px-2.5 text-[12px] font-medium rounded-[2px] transition-colors ${
+      className={`flex items-center gap-1.5 h-7 px-2.5 text-[12px] font-medium rounded-lg transition-colors ${
         active
-          ? "bg-paper text-ink shadow-paper"
-          : "text-muted hover:text-ink"
+          ? "bg-slate-50 text-slate-900 shadow-paper"
+          : "text-muted hover:text-slate-900"
       }`}
     >
       {icon}
@@ -152,7 +155,7 @@ function EmptyState({ title, hint }: { title: string; hint: string }) {
       {/* 朱砂红细线插画 */}
       <svg
         viewBox="0 0 120 80"
-        className="mx-auto mb-4 w-32 h-auto text-accent/60"
+        className="mx-auto mb-4 w-32 h-auto text-blue-600/60"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.2"
@@ -163,7 +166,7 @@ function EmptyState({ title, hint }: { title: string; hint: string }) {
         <path d="M14 70 L26 60 L38 70" strokeLinecap="round" strokeLinejoin="round" />
         <path d="M82 70 L94 60 L106 70" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      <h3 className="editorial-title text-[20px] text-ink mb-1.5">{title}</h3>
+      <h3 className="biz-title text-[20px] text-slate-900 mb-1.5">{title}</h3>
       <p className="text-[13px] text-muted leading-relaxed">{hint}</p>
     </div>
   );

@@ -71,9 +71,9 @@ export function Sidebar() {
     JSON.stringify(filter) !== JSON.stringify(DEFAULT_FILTER);
 
   return (
-    <aside className="hidden lg:flex flex-col w-[260px] shrink-0 bg-paper border-r border-ink/15 overflow-y-auto">
+    <aside className="hidden lg:flex flex-col w-[260px] shrink-0 bg-slate-50 border-r border-slate-300/15 overflow-y-auto">
       {/* 统计概览 */}
-      <section className="px-5 py-4 border-b border-ink/10">
+      <section className="px-5 py-4 border-b border-slate-300/10">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-[11px] font-medium uppercase tracking-wider text-muted">
             团队概览
@@ -109,7 +109,7 @@ export function Sidebar() {
       </section>
 
       {/* 筛选 */}
-      <section className="px-5 py-4 border-b border-ink/10">
+      <section className="px-5 py-4 border-b border-slate-300/10">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-[11px] font-medium uppercase tracking-wider text-muted flex items-center gap-1.5">
             <FilterIcon size={12} /> 筛选
@@ -117,7 +117,7 @@ export function Sidebar() {
           {hasFilter ? (
             <button
               onClick={resetFilter}
-              className="mono-meta hover:text-accent flex items-center gap-1"
+              className="mono-meta hover:text-blue-600 flex items-center gap-1"
             >
               <RotateCcw size={11} /> 重置
             </button>
@@ -174,10 +174,10 @@ export function Sidebar() {
               <button
                 key={m.memberId}
                 onClick={() => patchFilter({ assigneeId: m.memberId })}
-                className={`flex items-center gap-1.5 h-6 px-1.5 border rounded-[2px] transition-colors ${
+                className={`flex items-center gap-1.5 h-6 px-1.5 border rounded-lg transition-colors ${
                   filter.assigneeId === m.memberId
-                    ? "bg-ink text-paper border-ink"
-                    : "bg-chip/60 border-ink/15 hover:border-ink/35"
+                    ? "bg-ink text-white border-slate-300"
+                    : "bg-chip/60 border-slate-300/15 hover:border-slate-300/35"
                 }`}
                 title={m.nickname}
               >
@@ -215,7 +215,7 @@ export function Sidebar() {
       </section>
 
       {/* 排序与显示 */}
-      <section className="px-5 py-4 border-b border-ink/10">
+      <section className="px-5 py-4 border-b border-slate-300/10">
         <FilterGroup label="排序方式">
           <div className="flex flex-wrap gap-1.5">
             {SORT_OPTIONS.map((opt) => (
@@ -232,10 +232,10 @@ export function Sidebar() {
         <FilterGroup label="显示" className="mt-3">
           <button
             onClick={toggleShowArchived}
-            className={`flex items-center gap-1.5 h-7 px-2.5 text-[12px] border rounded-[2px] transition-colors w-full justify-between ${
+            className={`flex items-center gap-1.5 h-7 px-2.5 text-[12px] border rounded-lg transition-colors w-full justify-between ${
               showArchived
-                ? "bg-ink text-paper border-ink"
-                : "bg-chip/60 text-ink/75 border-ink/15 hover:border-ink/35"
+                ? "bg-ink text-white border-slate-300"
+                : "bg-chip/60 text-slate-900/75 border-slate-300/15 hover:border-slate-300/35"
             }`}
           >
             <span className="flex items-center gap-1.5">
@@ -257,15 +257,15 @@ export function Sidebar() {
           {teamMembers.map((m) => (
             <li
               key={m.memberId}
-              className="flex items-center justify-between gap-2 px-1 py-1 hover:bg-chip/40 rounded-[2px]"
+              className="flex items-center justify-between gap-2 px-1 py-1 hover:bg-chip/40 rounded-lg"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <Avatar char={m.avatarChar} size="sm" />
-                <span className="text-[13px] text-ink/85 truncate">
+                <span className="text-[13px] text-slate-900/85 truncate">
                   {m.nickname}
                 </span>
                 {team.ownerId === m.memberId ? (
-                  <span className="mono-meta text-accent">owner</span>
+                  <span className="mono-meta text-blue-600">owner</span>
                 ) : null}
               </div>
               <CountBadge tone="neutral">
@@ -291,14 +291,14 @@ function StatCard({
   tone: "neutral" | "accent" | "success" | "danger";
 }) {
   const toneClass = {
-    neutral: "text-ink/80 border-ink/15",
-    accent: "text-accent border-accent/30 bg-accent/5",
+    neutral: "text-slate-900/80 border-slate-300/15",
+    accent: "text-blue-600 border-blue-600/30 bg-blue-600/5",
     success: "text-success border-success/30 bg-success/5",
-    danger: "text-accent border-accent/40 bg-accent/8",
+    danger: "text-blue-600 border-blue-600/40 bg-blue-600/8",
   }[tone];
   return (
     <div
-      className={`flex items-center justify-between px-2.5 py-2 border rounded-[2px] ${toneClass}`}
+      className={`flex items-center justify-between px-2.5 py-2 border rounded-lg ${toneClass}`}
     >
       <div className="flex items-center gap-1.5 min-w-0">
         <span className="shrink-0">{icon}</span>
@@ -338,7 +338,7 @@ export function MobileFilterBar() {
     JSON.stringify(filter) !== JSON.stringify(DEFAULT_FILTER);
   if (!hasFilter) return null;
   return (
-    <div className="lg:hidden flex items-center gap-2 px-4 py-2 bg-chip/40 border-b border-ink/10 overflow-x-auto">
+    <div className="lg:hidden flex items-center gap-2 px-4 py-2 bg-chip/40 border-b border-slate-300/10 overflow-x-auto">
       <span className="mono-meta whitespace-nowrap">筛选中：</span>
       {filter.status !== "all" ? (
         <Chip onClick={() => patchFilter({ status: "all" })}>

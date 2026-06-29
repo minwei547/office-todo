@@ -34,13 +34,13 @@ export function TeamBar() {
   }
 
   return (
-    <header className="relative flex items-center gap-3 px-5 h-14 bg-paper border-b border-ink/15">
+    <header className="relative flex items-center gap-3 px-5 h-14 bg-slate-50 border-b border-slate-300/15">
       {/* 左：Logo + 团队名 */}
       <div className="flex items-center gap-2.5 min-w-0">
-        <div className="h-7 w-7 shrink-0 grid place-items-center bg-ink text-paper rounded-[2px]">
-          <span className="font-display font-semibold text-[14px] leading-none">辑</span>
+        <div className="h-7 w-7 shrink-0 grid place-items-center bg-ink text-white rounded-lg">
+          <span className="font-sans font-semibold text-[14px] leading-none">辑</span>
         </div>
-        <h1 className="editorial-title text-[18px] text-ink truncate max-w-[260px]">
+        <h1 className="biz-title text-[18px] text-slate-900 truncate max-w-[260px]">
           {team?.teamName ?? "未加入团队"}
         </h1>
         {team ? (
@@ -63,9 +63,9 @@ export function TeamBar() {
             <span className="hidden sm:inline">邀请同事</span>
             <span className="sm:hidden">邀请</span>
           </Button>
-          <div className="hidden sm:flex items-center gap-1.5 pl-2 border-l border-ink/10">
+          <div className="hidden sm:flex items-center gap-1.5 pl-2 border-l border-slate-300/10">
             <Avatar char={member.avatarChar} size="sm" />
-            <span className="text-[13px] text-ink/80 font-medium">
+            <span className="text-[13px] text-slate-900/80 font-medium">
               {member.nickname}
             </span>
           </div>
@@ -84,7 +84,7 @@ export function TeamBar() {
           >
             <MessageSquare size={18} />
             {unread > 0 ? (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 inline-flex items-center justify-center bg-accent text-paper text-[10px] font-mono font-semibold rounded-full">
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 inline-flex items-center justify-center bg-blue-600 text-white text-[10px] font-mono font-semibold rounded-full">
                 {unread > 9 ? "9+" : unread}
               </span>
             ) : null}

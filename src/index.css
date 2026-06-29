@@ -23,15 +23,11 @@ body,
 
 body {
   margin: 0;
-  background-color: #f5f1e8;
-  color: #1a1a1a;
-  /* 纸纹肌理：极细噪点叠加，营造"纸张感" */
-  background-image:
-    radial-gradient(circle at 1px 1px, rgba(26, 26, 26, 0.035) 1px, transparent 0);
-  background-size: 22px 22px;
+  background-color: #f1f5f9;
+  color: #0f172a;
 }
 
-/* 滚动条：细线墨色，呼应编辑感 */
+/* 滚动条：商务蓝细线 */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -40,17 +36,17 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(26, 26, 26, 0.18);
+  background: rgba(37, 99, 235, 0.28);
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(26, 26, 26, 0.32);
+  background: rgba(37, 99, 235, 0.48);
 }
 
-/* 选中态：朱砂红浅底 */
+/* 选中态：商务蓝浅底 */
 ::selection {
-  background: rgba(200, 65, 44, 0.18);
-  color: #1a1a1a;
+  background: rgba(37, 99, 235, 0.15);
+  color: #0f172a;
 }
 
 input,
@@ -59,18 +55,18 @@ button {
   font-family: inherit;
 }
 
-/* utility：纸质卡片底 + 1px 墨边 */
+/* utility：商务卡片底 + 现代阴影 */
 @layer components {
-  .paper-card {
-    @apply bg-paper border border-ink/15 shadow-paper;
+  .biz-card {
+    @apply bg-white rounded-lg border border-slate-200 shadow-sm;
   }
-  .editorial-title {
-    @apply font-display font-medium tracking-tight;
+  .biz-title {
+    @apply font-sans font-bold tracking-tight;
   }
   .mono-meta {
-    @apply font-mono text-[11px] tracking-wide text-muted;
+    @apply font-mono text-[11px] tracking-wide text-slate-500;
   }
   .focus-ring {
-    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/40;
   }
 }

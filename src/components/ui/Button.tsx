@@ -20,13 +20,13 @@ const sizeClass: Record<Size, string> = {
 
 const variantClass: Record<Variant, string> = {
   primary:
-    "bg-accent text-paper border border-accent hover:bg-accent/90 hover:shadow-paper active:translate-y-px",
+    "bg-blue-600 text-white border border-blue-600 hover:bg-blue-600/90 hover:shadow-paper active:translate-y-px",
   secondary:
-    "bg-paper text-ink border border-ink/25 hover:border-ink/50 hover:bg-chip/60 active:translate-y-px",
+    "bg-slate-50 text-slate-900 border border-slate-300/25 hover:border-slate-300/50 hover:bg-chip/60 active:translate-y-px",
   ghost:
-    "bg-transparent text-ink/80 border border-transparent hover:bg-ink/5 hover:text-ink",
+    "bg-transparent text-slate-900/80 border border-transparent hover:bg-ink/5 hover:text-slate-900",
   danger:
-    "bg-transparent text-accent border border-accent/40 hover:bg-accent/10 hover:border-accent",
+    "bg-transparent text-blue-600 border border-blue-600/40 hover:bg-blue-50 hover:border-blue-600",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -38,7 +38,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "inline-flex items-center justify-center font-medium rounded-[2px] transition-all duration-150 focus-ring select-none",
+          "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 focus-ring select-none",
           sizeClass[size],
           variantClass[variant],
           className,
@@ -69,11 +69,11 @@ export function IconButton({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center rounded-[2px] border border-transparent transition-colors focus-ring",
+        "inline-flex items-center justify-center rounded-lg border border-transparent transition-colors focus-ring",
         size === "sm" ? "h-7 w-7" : "h-9 w-9",
         tone === "neutral"
-          ? "text-ink/70 hover:bg-ink/5 hover:text-ink"
-          : "text-accent hover:bg-accent/10",
+          ? "text-slate-900/70 hover:bg-ink/5 hover:text-slate-900"
+          : "text-blue-600 hover:bg-blue-50",
         className,
       )}
       {...rest}

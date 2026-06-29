@@ -157,12 +157,12 @@ export function TaskDetailDrawer() {
               if (e.key === "Enter") e.currentTarget.blur();
               if (e.key === "Escape") setEditingTitle(false);
             }}
-            className="w-full bg-transparent border-b border-accent focus:outline-none"
+            className="w-full bg-transparent border-b border-blue-600 focus:outline-none"
           />
         ) : (
           <button
             onClick={() => setEditingTitle(true)}
-            className="text-left focus-ring rounded-[2px] -mx-1 px-1"
+            className="text-left focus-ring rounded-lg -mx-1 px-1"
           >
             {task.title}
           </button>
@@ -219,14 +219,14 @@ export function TaskDetailDrawer() {
               <button
                 key={s}
                 onClick={() => setTaskStatus(task.taskId, s)}
-                className={`flex-1 flex items-center justify-center gap-1.5 h-9 text-[12px] font-medium border rounded-[2px] transition-colors ${
+                className={`flex-1 flex items-center justify-center gap-1.5 h-9 text-[12px] font-medium border rounded-lg transition-colors ${
                   active
                     ? s === "done"
-                      ? "bg-success text-paper border-success"
+                      ? "bg-success text-white border-success"
                       : s === "in_progress"
-                        ? "bg-accent text-paper border-accent"
-                        : "bg-ink text-paper border-ink"
-                    : "bg-paper text-muted border-ink/15 hover:border-ink/35"
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "bg-ink text-white border-slate-300"
+                    : "bg-slate-50 text-muted border-slate-300/15 hover:border-slate-300/35"
                 }`}
               >
                 {STATUS_ICON[s]}
@@ -239,7 +239,7 @@ export function TaskDetailDrawer() {
           <StatusBadge status={task.status} />
           <PriorityBadge priority={task.priority} />
           {task.archived ? (
-            <span className="mono-meta text-accent">已归档</span>
+            <span className="mono-meta text-blue-600">已归档</span>
           ) : null}
         </div>
       </section>
@@ -250,7 +250,7 @@ export function TaskDetailDrawer() {
           <span className="text-[11px] font-medium uppercase tracking-wider text-muted">
             完成进度
           </span>
-          <span className="font-mono text-[14px] font-semibold tabular-nums text-ink">
+          <span className="font-mono text-[14px] font-semibold tabular-nums text-slate-900">
             {task.progress}%
           </span>
         </div>
@@ -276,10 +276,10 @@ export function TaskDetailDrawer() {
             <button
               key={p}
               onClick={() => setTaskProgress(task.taskId, p)}
-              className={`flex-1 h-6 text-[11px] font-mono border rounded-[2px] transition-colors ${
+              className={`flex-1 h-6 text-[11px] font-mono border rounded-lg transition-colors ${
                 task.progress === p
-                  ? "bg-accent text-paper border-accent"
-                  : "bg-chip/50 text-muted border-ink/15 hover:border-ink/35"
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-chip/50 text-muted border-slate-300/15 hover:border-slate-300/35"
               }`}
             >
               {p}%
@@ -312,7 +312,7 @@ export function TaskDetailDrawer() {
         ) : (
           <button
             onClick={() => setEditingDesc(true)}
-            className="w-full text-left min-h-[60px] px-3 py-2 text-[13px] text-ink/85 bg-chip/40 border border-ink/15 rounded-[2px] hover:border-ink/35 transition-colors focus-ring"
+            className="w-full text-left min-h-[60px] px-3 py-2 text-[13px] text-slate-900/85 bg-chip/40 border border-slate-300/15 rounded-lg hover:border-slate-300/35 transition-colors focus-ring"
           >
             {task.description ? (
               <span className="whitespace-pre-wrap">{task.description}</span>
@@ -355,16 +355,16 @@ export function TaskDetailDrawer() {
             onChange={(e) =>
               updateTask(task.taskId, { dueDate: e.target.value || null })
             }
-            className="w-full bg-paper border border-ink/20 px-3 h-9 text-[13px] rounded-[2px] focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/40"
+            className="w-full bg-slate-50 border border-slate-300/20 px-3 h-9 text-[13px] rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-accent/40"
           />
           <div className="flex items-center gap-1.5 mt-1.5">
             <Calendar size={11} className="text-muted" />
             <span
               className={`text-[11px] font-mono ${
                 due.tone === "danger"
-                  ? "text-accent font-semibold"
+                  ? "text-blue-600 font-semibold"
                   : due.tone === "warn"
-                    ? "text-accent"
+                    ? "text-blue-600"
                     : due.tone === "done"
                       ? "text-success"
                       : "text-muted"
@@ -412,12 +412,12 @@ export function TaskDetailDrawer() {
           {task.tags.map((t) => (
             <span
               key={t}
-              className="inline-flex items-center gap-1 h-6 px-2 text-[11px] bg-ink text-paper rounded-[2px]"
+              className="inline-flex items-center gap-1 h-6 px-2 text-[11px] bg-ink text-white rounded-lg"
             >
               #{t}
               <button
                 onClick={() => removeTag(t)}
-                className="hover:text-accent-soft"
+                className="hover:text-blue-300"
                 aria-label={`删除标签 ${t}`}
               >
                 ×
@@ -434,7 +434,7 @@ export function TaskDetailDrawer() {
               }
             }}
             placeholder="输入回车添加"
-            className="h-6 w-28 px-2 text-[11px] bg-chip/60 border border-ink/15 rounded-[2px] focus:outline-none focus:border-accent"
+            className="h-6 w-28 px-2 text-[11px] bg-chip/60 border border-slate-300/15 rounded-lg focus:outline-none focus:border-blue-600"
           />
         </div>
       </Field>
@@ -461,12 +461,12 @@ export function TaskDetailDrawer() {
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-[12px] font-medium text-ink">
+                      <span className="text-[12px] font-medium text-slate-900">
                         {author?.nickname ?? "匿名"}
                       </span>
                       <span className="mono-meta">{relativeTime(n.timestamp)}</span>
                     </div>
-                    <p className="text-[13px] text-ink/85 whitespace-pre-wrap break-words mt-0.5">
+                    <p className="text-[13px] text-slate-900/85 whitespace-pre-wrap break-words mt-0.5">
                       {n.content}
                     </p>
                   </div>
@@ -510,7 +510,7 @@ export function TaskDetailDrawer() {
         {taskActivities.length === 0 ? (
           <div className="text-[12px] text-muted/70 italic">尚无活动记录</div>
         ) : (
-          <ol className="relative pl-4 border-l border-ink/15">
+          <ol className="relative pl-4 border-l border-slate-300/15">
             {taskActivities.map((a) => {
               const actor = members[a.actorId];
               let detail = "";
@@ -532,9 +532,9 @@ export function TaskDetailDrawer() {
               }
               return (
                 <li key={a.activityId} className="relative pb-3 last:pb-0">
-                  <span className="absolute -left-[1.125rem] top-1 h-2 w-2 rounded-full bg-accent/60 ring-2 ring-paper" />
+                  <span className="absolute -left-[1.125rem] top-1 h-2 w-2 rounded-full bg-blue-600/60 ring-2 ring-white" />
                   <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="text-[12px] font-medium text-ink">
+                    <span className="text-[12px] font-medium text-slate-900">
                       {actor?.nickname ?? "匿名"}
                     </span>
                     <span className="text-[12px] text-muted">
@@ -557,7 +557,7 @@ export function TaskDetailDrawer() {
       </section>
 
       {/* 元信息 foot */}
-      <div className="mt-6 pt-4 border-t border-ink/10 grid grid-cols-2 gap-3 mono-meta">
+      <div className="mt-6 pt-4 border-t border-slate-300/10 grid grid-cols-2 gap-3 mono-meta">
         <div className="flex items-center gap-1.5">
           <User size={11} /> 创建者 {members[activities[Object.keys(activities)[0] ?? ""]?.actorId ?? ""]?.nickname ?? "—"}
         </div>

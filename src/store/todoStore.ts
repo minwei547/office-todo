@@ -48,6 +48,10 @@ interface TodoState {
     inviteCode: string,
     nickname: string,
   ) => Promise<{ teamId: string; memberId: string }>;
+  recoverMember: (
+    inviteCode: string,
+    nickname: string,
+  ) => Promise<{ teamId: string; memberId: string }>;
   switchTeam: (teamId: string) => Promise<void>;
   renameTeam: (teamId: string, name: string) => Promise<void>;
   updateNickname: (nickname: string) => Promise<void>;
@@ -126,6 +130,12 @@ export const useTodoStore = create<TodoState>((set, get) => ({
       try {
         await get().refreshTeam(session.teamId);
         socket.connect(session.teamId);
+        // 恢复私信列表
+        try {
+          await get().refreshConversations();
+        } catch {
+          // 私信加载失败不影响主流程
+        }
       } catch {
         useSessionStore.setState({ memberId: null, teamId: null });
         setMemberId(null);
@@ -190,6 +200,25 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     set({ currentMemberId: result.memberId, currentTeamId: result.teamId });
     await get().refreshTeam(result.teamId);
     socket.connect(result.teamId);
+    return result;
+  },
+
+  recoverMember: async (inviteCode, nickname) => {
+    const result = await api.recoverMember(inviteCode, nickname);
+    setMemberId(result.memberId);
+    useSessionStore.setState({
+      memberId: result.memberId,
+      teamId: result.teamId,
+      nickname,
+    });
+    set({ currentMemberId: result.memberId, currentTeamId: result.teamId });
+    await get().refreshTeam(result.teamId);
+    socket.connect(result.teamId);
+    try {
+      await get().refreshConversations();
+    } catch {
+      // 私信加载失败不影响主流程
+    }
     return result;
   },
 
@@ -372,7 +401,11 @@ export const useTodoStore = create<TodoState>((set, get) => ({
       case "sync":
         {
           const teamId = get().currentTeamId;
-          if (teamId) get().refreshTeam(teamId);
+          if (teamId) {
+            get().refreshTeam(teamId);
+            // 同步私信
+            get().refreshConversations().catch(() => {});
+          }
         }
         break;
       case "team:renamed":

@@ -56,13 +56,13 @@ export function Drawer({
       {/* 抽屉本体 */}
       <div
         className={cn(
-          "absolute right-0 top-0 h-full bg-paper border-l border-ink/15 shadow-lift flex flex-col animate-slide-in",
+          "absolute right-0 top-0 h-full bg-slate-50 border-l border-slate-300/15 shadow-lift flex flex-col animate-slide-in",
           widthClass,
         )}
       >
-        <header className="flex items-start justify-between gap-3 px-5 pt-5 pb-3 border-b border-ink/10">
+        <header className="flex items-start justify-between gap-3 px-5 pt-5 pb-3 border-b border-slate-300/10">
           <div className="min-w-0">
-            <div className="font-display text-[20px] font-medium text-ink leading-tight">
+            <div className="font-sans text-[20px] font-medium text-slate-900 leading-tight">
               {title}
             </div>
             {subtitle ? (
@@ -75,7 +75,7 @@ export function Drawer({
         </header>
         <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
         {footer ? (
-          <footer className="px-5 py-3 border-t border-ink/10 bg-chip/40">
+          <footer className="px-5 py-3 border-t border-slate-300/10 bg-chip/40">
             {footer}
           </footer>
         ) : null}

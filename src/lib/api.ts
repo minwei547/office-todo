@@ -94,6 +94,25 @@ export const api = {
     return { teamId: team.teamId, memberId };
   },
 
+  // 跨设备恢复身份：用邀请码+昵称找回已有成员
+  async recoverMember(inviteCode: string, nickname: string) {
+    if (!inviteCode.trim() || !nickname.trim()) throw new Error("inviteCode 与 nickname 必填");
+    const { data: team, error } = await supabase
+      .from("teams")
+      .select("*")
+      .eq("inviteCode", inviteCode.trim().toUpperCase())
+      .single();
+    if (error || !team) throw new Error("邀请码无效");
+    const { data: member } = await supabase
+      .from("members")
+      .select("*")
+      .eq("teamId", team.teamId)
+      .eq("nickname", nickname.trim())
+      .single();
+    if (!member) throw new Error("未找到该昵称的成员，请确认昵称无误");
+    return { teamId: team.teamId, memberId: member.memberId };
+  },
+
   async getTeam(teamId: string) {
     const member = await getMember();
     const { data: team, error } = await supabase.from("teams").select("*").eq("teamId", teamId).single();
