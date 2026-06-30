@@ -231,52 +231,73 @@ export function NotifyDrawer() {
             </p>
             {pwa.isIOS ? (
               <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
-                <p>📱 iPhone/iPad：</p>
+                <p>📱 iPhone/iPad（重要：必须添加到主屏幕）：</p>
                 {pwa.installed ? (
-                  <ol className="pl-4 space-y-0.5 list-decimal">
-                    <li>打开系统 <strong>设置</strong></li>
-                    <li>找到本 App（办公协作待办清单）</li>
-                    <li>点 <strong>通知</strong> → 打开「允许通知」</li>
-                  </ol>
+                  <div className="space-y-1.5">
+                    <p className="text-[#a85c4a]">如果已添加到主屏幕但被拒绝：</p>
+                    <ol className="pl-4 space-y-0.5 list-decimal">
+                      <li>长按桌面本 App 图标 → 移除 App → 从主屏幕删除</li>
+                      <li>重新用 Safari 打开本网站</li>
+                      <li>点底部分享按钮 →「添加到主屏幕」→ 添加</li>
+                      <li>从桌面图标打开，会重新弹出权限请求，点「允许」</li>
+                    </ol>
+                    <p className="pt-1">系统设置检查：设置 → 通知 → 找到本 App → 打开「允许通知」</p>
+                  </div>
                 ) : (
                   <ol className="pl-4 space-y-0.5 list-decimal">
                     <li>先按下方指引「添加到主屏幕」</li>
-                    <li>从桌面图标打开后，再回来开启通知</li>
+                    <li><strong>关掉 Safari 浏览器</strong>，从桌面图标打开</li>
+                    <li>打开后会自动弹出权限请求，点「允许」</li>
                   </ol>
                 )}
+                <p className="pt-1 text-[#a85c4a]">⚠️ iPhone 上 Safari 直接打开网页无法收到推送，必须添加到主屏幕从图标启动！</p>
               </div>
             ) : pwa.isAndroid ? (
-              <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
-                <p>📱 安卓（Chrome/Edge）：</p>
+              <div className="text-[11px] text-muted leading-relaxed space-y-1.5 pl-1">
+                <p>📱 安卓（Chrome/Edge），先试方法一：</p>
+                <p className="font-medium text-ink">方法一（最简单，当前页面直接设置）：</p>
+                <ol className="pl-4 space-y-0.5 list-decimal">
+                  <li>点地址栏 <strong>左侧</strong> 的 🔒 锁图标 或 ⓘ 信息图标</li>
+                  <li>在弹出面板中点「网站设置」</li>
+                  <li>找到「通知」，把右侧开关打开（变蓝色）</li>
+                  <li>返回网页，点刷新</li>
+                </ol>
+                <p className="font-medium text-ink pt-1">方法二（如果方法一找不到）：</p>
                 <ol className="pl-4 space-y-0.5 list-decimal">
                   <li>点浏览器右上角 ⋮ 三个点菜单</li>
                   <li>点「设置」→「网站设置」→「通知」</li>
-                  <li>顶部选「网站可以询问能否向您发送通知」</li>
-                  <li>在下方「不允许」列表里找到本网站</li>
-                  <li>点它右边的 ⋮ → 选「允许」</li>
-                  <li>返回网页，刷新页面</li>
+                  <li>顶部确认「网站可以请求发送通知」已开</li>
+                  <li>在下方「不允许」列表找到本网站，点进去</li>
+                  <li>把「通知」开关打开</li>
+                  <li>返回网页刷新</li>
                 </ol>
-                <p className="pt-1 text-[#a85c4a]">如果还不行：手机设置 → 应用管理 → Chrome → 通知 → 全部允许</p>
+                <p className="pt-1 text-[#a85c4a]">⚠️ 还需检查系统权限：手机设置 → 应用 → Chrome/Edge → 通知 → 打开「允许通知」</p>
               </div>
             ) : pwa.isHarmonyOS ? (
-              <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
-                <p>📱 鸿蒙：</p>
+              <div className="text-[11px] text-muted leading-relaxed space-y-1.5 pl-1">
+                <p>📱 鸿蒙（华为浏览器），先检查系统权限：</p>
                 <ol className="pl-4 space-y-0.5 list-decimal">
-                  <li>浏览器右上角 ⋮ → 设置 → 网站设置 → 通知</li>
-                  <li>选「网站可以询问能否向您发送通知」</li>
-                  <li>在「不允许」列表找到本网站 → 点 ⋮ → 允许</li>
-                  <li>返回网页，刷新页面</li>
+                  <li>打开手机 <strong>设置</strong> →「通知和状态栏」→「通知管理」</li>
+                  <li>找到「华为浏览器」，打开「允许通知」</li>
                 </ol>
-                <p className="pt-1 text-[#a85c4a]">如不行：设置 → 应用和服务 → 应用管理 → 浏览器 → 通知管理 → 允许</p>
+                <p className="font-medium text-ink pt-1">再设置浏览器内权限：</p>
+                <ol className="pl-4 space-y-0.5 list-decimal">
+                  <li>点浏览器右上角 ∷ 四个点 →「设置」</li>
+                  <li>点「网站设置」→「通知」</li>
+                  <li>顶部「网站可以发送通知」开关打开</li>
+                  <li>在「不允许」列表找到本网站，点进去改为允许</li>
+                  <li>返回网页刷新</li>
+                </ol>
               </div>
             ) : (
               <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
-                <p>💻 电脑端：</p>
+                <p>💻 电脑端（Chrome/Edge/Safari）：</p>
                 <ol className="pl-4 space-y-0.5 list-decimal">
-                  <li>点地址栏左边的 🔒 锁图标</li>
-                  <li>找到「通知」→ 改为「允许」</li>
+                  <li>点地址栏 <strong>左侧</strong> 的 🔒 锁图标</li>
+                  <li>找到「通知」下拉选项，改为「允许」</li>
                   <li>刷新页面即可</li>
                 </ol>
+                <p className="pt-1">如果找不到：浏览器设置 → 隐私和安全 → 网站设置 → 通知 → 在「不允许」列表找到本网站改为允许</p>
               </div>
             )}
           </div>
