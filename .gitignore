@@ -32,3 +32,4 @@ android/
 
 # PWA 生成产物（由 vite-plugin-pwa 在 build 时生成）
 dev-dist/
+preview-ui.html

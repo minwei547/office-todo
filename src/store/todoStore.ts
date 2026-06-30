@@ -336,13 +336,13 @@ export const useTodoStore = create<TodoState>((set, get) => ({
       const members = { ...s.members };
       delete members[memberId];
       const tasks = { ...s.tasks };
-      for (const [id, t] of Object.entries(tasks)) {
+      for (const [id, t] of Object.entries(tasks) as [string, Task][]) {
         if (t.assigneeId === memberId) {
           tasks[id] = { ...t, assigneeId: null };
         }
       }
       const messages = { ...s.messages };
-      for (const [id, m] of Object.entries(messages)) {
+      for (const [id, m] of Object.entries(messages) as [string, DirectMessage][]) {
         if (m.senderId === memberId || m.receiverId === memberId) {
           delete messages[id];
         }
@@ -508,7 +508,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     set((s) => {
       // 先清除该会话所有旧消息，再用最新结果覆盖
       const cleaned: Record<string, DirectMessage> = {};
-      for (const [id, m] of Object.entries(s.messages)) {
+      for (const [id, m] of Object.entries(s.messages) as [string, DirectMessage][]) {
         if (m.conversationId !== convId) cleaned[id] = m;
       }
       return {
@@ -587,7 +587,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     if (!me) return;
     set((s) => {
       const messages = { ...s.messages };
-      for (const [id, m] of Object.entries(messages)) {
+      for (const [id, m] of Object.entries(messages) as [string, DirectMessage][]) {
         if (
           m.receiverId === me &&
           m.senderId === peerId &&
@@ -648,10 +648,10 @@ export const useTodoStore = create<TodoState>((set, get) => ({
           delete tasks[event.taskId];
           const notes = { ...s.notes };
           const activities = { ...s.activities };
-          for (const [id, n] of Object.entries(notes)) {
+          for (const [id, n] of Object.entries(notes) as [string, Note][]) {
             if (n.taskId === event.taskId) delete notes[id];
           }
-          for (const [id, a] of Object.entries(activities)) {
+          for (const [id, a] of Object.entries(activities) as [string, Activity][]) {
             if (a.taskId === event.taskId) delete activities[id];
           }
           return { tasks, notes, activities };
@@ -676,7 +676,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
         if (me !== event.readerId) return;
         set((s) => {
           const messages = { ...s.messages };
-          for (const [id, m] of Object.entries(messages)) {
+          for (const [id, m] of Object.entries(messages) as [string, DirectMessage][]) {
             if (
               m.conversationId === event.conversationId &&
               m.receiverId === me

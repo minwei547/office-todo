@@ -29,8 +29,10 @@ export function DMDrawer() {
   const [search, setSearch] = useState("");
   const [sendingImage, setSendingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [kbInset, setKbInset] = useState(0); // 键盘高度（px）
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputBarRef = useRef<HTMLDivElement>(null);
 
   const teamId = me?.teamId;
   const teamMembers = useMemo(
@@ -143,6 +145,36 @@ export function DMDrawer() {
     return () => window.removeEventListener("keydown", onKey);
   }, [previewImage]);
 
+  // 移动端键盘遮挡处理：用 visualViewport 监听键盘高度，
+  // 给输入条动态加 bottom padding 让它始终可见
+  useEffect(() => {
+    if (!open || !peerId) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      // 键盘高度 = 视口高度差
+      const kb = window.innerHeight - vv.height - vv.offsetTop;
+      setKbInset(kb > 50 ? kb : 0);
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, [open, peerId]);
+
+  // textarea 聚焦时滚入视口（避免被键盘挡住）
+  const scrollToBottomOnFocus = useCallback(() => {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    });
+  }, []);
+
   if (!open) return null;
 
   // 过滤可发起私信的成员（排除自己）
@@ -173,6 +205,30 @@ export function DMDrawer() {
       setSendingImage(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  }
+
+  // 粘贴截图：从剪贴板取图片直接发送
+  async function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    if (!peerId) return;
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (!file) continue;
+        e.preventDefault(); // 阻止默认粘贴行为
+        try {
+          setSendingImage(true);
+          await sendImageDM(peerId, file);
+        } catch (err: any) {
+          alert(err.message || "图片发送失败");
+        } finally {
+          setSendingImage(false);
+        }
+        return;
+      }
+    }
+    // 非图片粘贴，走默认文本粘贴
   }
 
   return (
@@ -315,7 +371,11 @@ export function DMDrawer() {
               ) : null}
             </div>
             {/* 输入条 */}
-            <div className="px-4 py-3 border-t border-line bg-bg-soft">
+            <div
+              ref={inputBarRef}
+              className="px-4 py-3 border-t border-line bg-bg-soft transition-[padding] duration-100"
+              style={{ paddingBottom: `${Math.max(kbInset, 12)}px` }}
+            >
               <div className="flex items-end gap-2">
                 <input
                   ref={fileInputRef}
@@ -335,6 +395,8 @@ export function DMDrawer() {
                 <textarea
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
+                  onPaste={handlePaste}
+                  onFocus={scrollToBottomOnFocus}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
@@ -342,7 +404,7 @@ export function DMDrawer() {
                     }
                   }}
                   rows={1}
-                  placeholder="输入消息，回车发送，Shift+回车换行"
+                  placeholder="输入消息，或直接粘贴截图发送 · 回车发送，Shift+回车换行"
                   className="flex-1 bg-bg-soft border border-line px-3 py-2 text-[13px] text-ink placeholder:text-muted/70 resize-none rounded-lg focus:outline-none focus:border-mint focus:ring-1 focus:ring-mint/50 max-h-32"
                 />
                 <IconButton
