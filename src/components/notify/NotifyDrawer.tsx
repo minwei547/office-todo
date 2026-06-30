@@ -254,7 +254,21 @@ export function NotifyDrawer() {
               </div>
             ) : pwa.isAndroid ? (
               <div className="text-[11px] text-muted leading-relaxed space-y-1.5 pl-1">
-                <p>📱 安卓（Chrome/Edge），先试方法一：</p>
+                {pwa.isEdge ? (
+                  <p className="text-[#a85c4a] font-medium">⚠️ 检测到你在用 Edge 浏览器：Edge 默认开启「安静通知请求」会自动屏蔽权限弹窗，请先按下方步骤关闭：</p>
+                ) : null}
+                <p>📱 安卓通知权限恢复步骤：</p>
+                {pwa.isEdge ? (
+                  <div className="bg-peach-soft/50 rounded p-2 border border-peach/30">
+                    <p className="font-medium text-[#a85c4a]">第一步：关闭 Edge 安静通知（必须做）</p>
+                    <ol className="pl-4 space-y-0.5 list-decimal text-[#a85c4a]">
+                      <li>点浏览器右下角或右上角 ⋯ 菜单</li>
+                      <li>点「设置」→「网站权限」→「通知」</li>
+                      <li>找到「安静通知请求」，把它关掉</li>
+                      <li>确保顶部「网站可以请求发送通知」是开启的</li>
+                    </ol>
+                  </div>
+                ) : null}
                 <p className="font-medium text-ink">方法一（最简单，当前页面直接设置）：</p>
                 <ol className="pl-4 space-y-0.5 list-decimal">
                   <li>点地址栏 <strong>左侧</strong> 的 🔒 锁图标 或 ⓘ 信息图标</li>
@@ -264,27 +278,33 @@ export function NotifyDrawer() {
                 </ol>
                 <p className="font-medium text-ink pt-1">方法二（如果方法一找不到）：</p>
                 <ol className="pl-4 space-y-0.5 list-decimal">
-                  <li>点浏览器右上角 ⋮ 三个点菜单</li>
-                  <li>点「设置」→「网站设置」→「通知」</li>
+                  <li>点浏览器 ⋮ 菜单 →「设置」→「网站设置」→「通知」</li>
                   <li>顶部确认「网站可以请求发送通知」已开</li>
                   <li>在下方「不允许」列表找到本网站，点进去</li>
-                  <li>把「通知」开关打开</li>
-                  <li>返回网页刷新</li>
+                  <li>把「通知」开关打开，返回网页刷新</li>
                 </ol>
-                <p className="pt-1 text-[#a85c4a]">⚠️ 还需检查系统权限：手机设置 → 应用 → Chrome/Edge → 通知 → 打开「允许通知」</p>
+                <p className="pt-1 text-[#a85c4a]">⚠️ 还需检查系统权限：手机设置 → 应用 → 你的浏览器（Chrome/Edge/狐猴/Firefox）→ 通知 → 打开「允许通知」</p>
+                <p className="pt-1 text-[#a85c4a]">💡 如果还是不弹权限请求：关闭悬浮球/护眼模式/录屏等悬浮窗应用后重试（安卓安全机制会拦截叠加层上的权限弹窗）</p>
               </div>
             ) : pwa.isHarmonyOS ? (
               <div className="text-[11px] text-muted leading-relaxed space-y-1.5 pl-1">
-                <p>📱 鸿蒙（华为浏览器），先检查系统权限：</p>
+                {pwa.isEdge ? (
+                  <p className="text-[#a85c4a] font-medium">⚠️ 检测到你在用 Edge 浏览器：请先关闭「安静通知请求」（见下方说明）</p>
+                ) : null}
+                <p>📱 鸿蒙通知权限恢复步骤：</p>
+                <p className="font-medium text-ink">第一步：先检查系统权限</p>
                 <ol className="pl-4 space-y-0.5 list-decimal">
                   <li>打开手机 <strong>设置</strong> →「通知和状态栏」→「通知管理」</li>
-                  <li>找到「华为浏览器」，打开「允许通知」</li>
+                  <li>找到你用的浏览器（华为浏览器/Chrome/Edge/狐猴），打开「允许通知」</li>
                 </ol>
-                <p className="font-medium text-ink pt-1">再设置浏览器内权限：</p>
+                <p className="font-medium text-ink pt-1">第二步：设置浏览器内权限</p>
                 <ol className="pl-4 space-y-0.5 list-decimal">
-                  <li>点浏览器右上角 ∷ 四个点 →「设置」</li>
+                  <li>点浏览器菜单（华为浏览器是右下角「我的」或右上角 ∷）→「设置」</li>
                   <li>点「网站设置」→「通知」</li>
                   <li>顶部「网站可以发送通知」开关打开</li>
+                  {pwa.isEdge ? (
+                    <li className="text-[#a85c4a]">找到「安静通知请求」，关闭它</li>
+                  ) : null}
                   <li>在「不允许」列表找到本网站，点进去改为允许</li>
                   <li>返回网页刷新</li>
                 </ol>
@@ -628,25 +648,38 @@ function BrowserSupportBanner({
           ) : pwa.isHarmonyOS ? (
             <div className="space-y-1.5">
               <div className="flex items-center gap-2 text-[12px] text-ink">
-                <span className="h-5 w-5 grid place-items-center rounded bg-[#4285F4]/10 text-[#4285F4] text-[10px] font-bold">C</span>
-                <span className="font-medium">Chrome（谷歌浏览器）</span>
-                <span className="text-muted text-[11px]">⭐ 首选</span>
+                <span className="h-5 w-5 grid place-items-center rounded bg-[#6B46C1]/10 text-[#6B46C1] text-[10px] font-bold">狐</span>
+                <span className="font-medium">狐猴浏览器（Lemur）</span>
+                <span className="text-muted text-[11px]">⭐ 国内首选，应用商店可下</span>
               </div>
               <div className="flex items-center gap-2 text-[12px] text-ink">
-                <span className="h-5 w-5 grid place-items-center rounded bg-[#0078D4]/10 text-[#0078D4] text-[10px] font-bold">E</span>
-                <span className="font-medium">Edge（微软浏览器）</span>
+                <span className="h-5 w-5 grid place-items-center rounded bg-[#4285F4]/10 text-[#4285F4] text-[10px] font-bold">C</span>
+                <span className="font-medium">Chrome（谷歌浏览器）</span>
                 <span className="text-muted text-[11px]">稳定</span>
               </div>
+              <div className="flex items-center gap-2 text-[12px] text-ink">
+                <span className="h-5 w-5 grid place-items-center rounded bg-[#FF7139]/10 text-[#FF7139] text-[10px] font-bold">F</span>
+                <span className="font-medium">Firefox（火狐浏览器）</span>
+                <span className="text-muted text-[11px]">备选</span>
+              </div>
               <p className="text-[11px] text-muted leading-relaxed pl-7">
-                华为应用市场搜索"Chrome"下载安装。安装后建议：设置 → 电池 → 应用启动管理 → 允许后台活动。
+                华为/小米/OPPO/vivo应用商店搜索「狐猴浏览器」或「Chrome」即可下载。安装后建议：设置 → 电池 → 应用启动管理 → 允许后台活动。
+              </p>
+              <p className="text-[11px] text-[#a85c4a] leading-relaxed pl-7">
+                ⚠️ 用 Edge 浏览器的用户：Edge 默认开启「安静通知请求」会屏蔽弹窗，需要手动关闭：⋮ → 设置 → 网站权限 → 通知 → 关闭「安静通知请求」
               </p>
             </div>
           ) : (
             <div className="space-y-1.5">
               <div className="flex items-center gap-2 text-[12px] text-ink">
+                <span className="h-5 w-5 grid place-items-center rounded bg-[#6B46C1]/10 text-[#6B46C1] text-[10px] font-bold">狐</span>
+                <span className="font-medium">狐猴浏览器（Lemur）</span>
+                <span className="text-muted text-[11px]">⭐ 国内首选，应用商店可下</span>
+              </div>
+              <div className="flex items-center gap-2 text-[12px] text-ink">
                 <span className="h-5 w-5 grid place-items-center rounded bg-[#4285F4]/10 text-[#4285F4] text-[10px] font-bold">C</span>
                 <span className="font-medium">Chrome（谷歌浏览器）</span>
-                <span className="text-muted text-[11px]">⭐ 首选，最稳定</span>
+                <span className="text-muted text-[11px]">最稳定</span>
               </div>
               <div className="flex items-center gap-2 text-[12px] text-ink">
                 <span className="h-5 w-5 grid place-items-center rounded bg-[#1458A9]/10 text-[#1458A9] text-[10px] font-bold">S</span>
@@ -654,10 +687,16 @@ function BrowserSupportBanner({
                 <span className="text-muted text-[11px]">三星手机自带</span>
               </div>
               <div className="flex items-center gap-2 text-[12px] text-ink">
-                <span className="h-5 w-5 grid place-items-center rounded bg-[#0078D4]/10 text-[#0078D4] text-[10px] font-bold">E</span>
-                <span className="font-medium">Edge（微软浏览器）</span>
-                <span className="text-muted text-[11px]">稳定</span>
+                <span className="h-5 w-5 grid place-items-center rounded bg-[#FF7139]/10 text-[#FF7139] text-[10px] font-bold">F</span>
+                <span className="font-medium">Firefox（火狐浏览器）</span>
+                <span className="text-muted text-[11px]">备选</span>
               </div>
+              <p className="text-[11px] text-muted leading-relaxed pl-7">
+                国内应用商店（小米/OPPO/vivo/应用宝）搜索「狐猴浏览器」「Chrome」「Firefox」即可下载。安装后建议关闭电池优化。
+              </p>
+              <p className="text-[11px] text-[#a85c4a] leading-relaxed pl-7">
+                ⚠️ 用 Edge 浏览器的用户：Edge 默认开启「安静通知请求」会屏蔽弹窗，需要手动关闭：⋮ → 设置 → 网站权限 → 通知 → 关闭「安静通知请求」
+              </p>
               <p className="text-[11px] text-[#a85c4a] leading-relaxed pl-7">
                 ⚠️ 微信/QQ/UC/夸克内置浏览器不支持推送，请复制链接到系统浏览器打开。
               </p>

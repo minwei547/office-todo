@@ -37,6 +37,10 @@ export interface PwaInstallState {
   isDesktop: boolean;
   /** 是否是手机端（非桌面） */
   isMobile: boolean;
+  /** 是否是 Edge 浏览器 */
+  isEdge: boolean;
+  /** 是否是 Firefox 浏览器 */
+  isFirefox: boolean;
 }
 
 /** 浏览器对 Web Push 的支持状态 */
@@ -61,6 +65,8 @@ export function usePwaInstall() {
     isQQ: false,
     isDesktop: false,
     isMobile: false,
+    isEdge: false,
+    isFirefox: false,
   });
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
@@ -83,6 +89,8 @@ export function usePwaInstall() {
     const isAndroid = /Android/.test(ua) && !isHarmonyOS;
     const isWeChat = /MicroMessenger/i.test(ua);
     const isQQ = /QQBrowser|QQ\//i.test(ua) && !isWeChat;
+    const isEdge = /Edg|Edge/i.test(ua);
+    const isFirefox = /Firefox|FxiOS/i.test(ua);
     const isMobile = isIOS || isAndroid || isHarmonyOS;
     const isDesktop = !isMobile;
 
@@ -97,6 +105,8 @@ export function usePwaInstall() {
       isQQ,
       isDesktop,
       isMobile,
+      isEdge,
+      isFirefox,
     }));
 
     // 监听 beforeinstallprompt（仅 Android Chrome / 桌面 Chromium 浏览器）
