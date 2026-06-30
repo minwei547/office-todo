@@ -248,16 +248,13 @@ export function NotifyDrawer() {
             ) : pwa.isAndroid ? (
               <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
                 <p>📱 安卓（Chrome/Edge）：</p>
-                <p className="font-medium text-ink">方法一（推荐）：</p>
                 <ol className="pl-4 space-y-0.5 list-decimal">
                   <li>点浏览器右上角 ⋮ 三个点菜单</li>
                   <li>点「设置」→「网站设置」→「通知」</li>
-                  <li>找到本网站，改为「允许」，然后刷新</li>
-                </ol>
-                <p className="font-medium text-ink pt-1">方法二：</p>
-                <ol className="pl-4 space-y-0.5 list-decimal">
-                  <li>点地址栏左边的 🔒 锁图标</li>
-                  <li>点「权限」或「网站设置」→「通知」→ 改为「允许」</li>
+                  <li>顶部选「网站可以询问能否向您发送通知」</li>
+                  <li>在下方「不允许」列表里找到本网站</li>
+                  <li>点它右边的 ⋮ → 选「允许」</li>
+                  <li>返回网页，刷新页面</li>
                 </ol>
                 <p className="pt-1 text-[#a85c4a]">如果还不行：手机设置 → 应用管理 → Chrome → 通知 → 全部允许</p>
               </div>
@@ -266,7 +263,9 @@ export function NotifyDrawer() {
                 <p>📱 鸿蒙：</p>
                 <ol className="pl-4 space-y-0.5 list-decimal">
                   <li>浏览器右上角 ⋮ → 设置 → 网站设置 → 通知</li>
-                  <li>找到本网站，改为「允许」，然后刷新</li>
+                  <li>选「网站可以询问能否向您发送通知」</li>
+                  <li>在「不允许」列表找到本网站 → 点 ⋮ → 允许</li>
+                  <li>返回网页，刷新页面</li>
                 </ol>
                 <p className="pt-1 text-[#a85c4a]">如不行：设置 → 应用和服务 → 应用管理 → 浏览器 → 通知管理 → 允许</p>
               </div>
