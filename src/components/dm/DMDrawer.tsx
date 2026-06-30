@@ -208,27 +208,29 @@ export function DMDrawer() {
   }
 
   // 粘贴截图：从剪贴板取图片直接发送
-  async function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+  async function handlePaste(e: React.ClipboardEvent<HTMLElement>) {
     if (!peerId) return;
     const items = e.clipboardData?.items;
-    if (!items) return;
-    for (const item of items) {
-      if (item.type.startsWith("image/")) {
-        const file = item.getAsFile();
-        if (!file) continue;
-        e.preventDefault(); // 阻止默认粘贴行为
-        try {
-          setSendingImage(true);
-          await sendImageDM(peerId, file);
-        } catch (err: any) {
-          alert(err.message || "图片发送失败");
-        } finally {
-          setSendingImage(false);
-        }
-        return;
+    if (!items || items.length === 0) return;
+    // 用索引访问 DataTransferItemList，避免 for...of 在部分浏览器不可迭代
+    let imageFile: File | null = null;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.kind === "file" && item.type.startsWith("image/")) {
+        imageFile = item.getAsFile();
+        if (imageFile) break;
       }
     }
-    // 非图片粘贴，走默认文本粘贴
+    if (!imageFile) return; // 没有图片，走默认文本粘贴
+    e.preventDefault(); // 阻止默认粘贴（避免把图片当文本插入）
+    try {
+      setSendingImage(true);
+      await sendImageDM(peerId, imageFile);
+    } catch (err: any) {
+      alert(err.message || "图片发送失败");
+    } finally {
+      setSendingImage(false);
+    }
   }
 
   return (
@@ -238,7 +240,10 @@ export function DMDrawer() {
         onClick={() => setOpen(false)}
         className="absolute inset-0 bg-[rgba(220,220,230,0.4)] backdrop-blur-[4px] animate-[fade-up_200ms_ease-out]"
       />
-      <div className="absolute right-0 top-0 h-full w-[460px] max-w-[94vw] bg-surface/95 border-l border-line shadow-lift flex flex-col animate-slide-in backdrop-blur-xl">
+      <div
+        onPaste={peer ? handlePaste : undefined}
+        className="absolute right-0 top-0 h-full w-[460px] max-w-[94vw] bg-surface/95 border-l border-line shadow-lift flex flex-col animate-slide-in backdrop-blur-xl"
+      >
         {/* 头部 */}
         <header className="flex items-center justify-between gap-3 px-5 h-14 border-b border-line">
           {peer ? (
@@ -387,7 +392,7 @@ export function DMDrawer() {
                 <IconButton
                   onClick={() => fileInputRef.current?.click()}
                   aria-label="发送图片"
-                  title="发送图片（≤5MB）"
+                  title="发送图片（≤10MB），也可直接粘贴截图"
                   className="h-9 w-9 bg-surface border-line text-[#4a7a68] hover:border-mint hover:bg-mint-soft"
                 >
                   <ImageIcon size={15} />

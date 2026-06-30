@@ -483,7 +483,7 @@ export const api = {
   async sendImageMessage(receiverId: string, file: File) {
     const member = await getMember();
     if (!receiverId || !file) throw new Error("receiverId 与 file 必填");
-    if (file.size > 5 * 1024 * 1024) throw new Error("图片不能超过 5MB");
+    if (file.size > 10 * 1024 * 1024) throw new Error("图片不能超过 10MB");
     if (!file.type.startsWith("image/")) throw new Error("只能发送图片");
     const { data: receiver } = await supabase.from("members").select("*").eq("memberId", receiverId).single();
     if (!receiver || receiver.teamId !== member.teamId) throw new Error("接收方不在同一团队");
