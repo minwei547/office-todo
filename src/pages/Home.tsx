@@ -14,6 +14,7 @@ import { NotifyDrawer } from "@/components/notify/NotifyDrawer";
 import { useTodoStore, selectCurrentTeam } from "@/store/todoStore";
 import { useUIStore } from "@/store/uiStore";
 import { socket } from "@/lib/socket";
+import { syncPushSubscription } from "@/lib/push";
 
 export default function Home() {
   const team = useTodoStore(selectCurrentTeam);
@@ -34,6 +35,10 @@ export default function Home() {
     let unsub: (() => void) | undefined;
     (async () => {
       await initFromSession();
+      // 同步当前设备的 Web Push 订阅到当前 userId
+      syncPushSubscription().catch(() => {
+        // 推送同步失败不影响主流程
+      });
       unsub = socket.subscribe((event) => {
         applyServerEvent(event);
       });
@@ -53,9 +58,23 @@ export default function Home() {
     };
     window.addEventListener("app:open-dm", onOpenDM);
     window.addEventListener("app:open-tasks", onOpenTasks);
+    // Service Worker 通知点击消息
+    const onSWMessage = (event: MessageEvent) => {
+      if (event.data?.type === "notification-click") {
+        const url = event.data.url ?? "/";
+        if (url.includes("dm=1")) onOpenDM();
+        else onOpenTasks();
+      }
+    };
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.addEventListener("message", onSWMessage);
+    }
     return () => {
       window.removeEventListener("app:open-dm", onOpenDM);
       window.removeEventListener("app:open-tasks", onOpenTasks);
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.removeEventListener("message", onSWMessage);
+      }
     };
   }, [setDMDrawer]);
 

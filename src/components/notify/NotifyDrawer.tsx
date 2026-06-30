@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Bell, BellRing, Smartphone, Vibrate } from "lucide-react";
+import { Bell, BellRing, MoonStar, Smartphone, Vibrate } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { Button } from "@/components/ui/Button";
 import { useUIStore } from "@/store/uiStore";
+import { useTodoStore } from "@/store/todoStore";
 import {
   loadPref,
   savePref,
@@ -12,17 +13,52 @@ import {
   showNotification,
   type NotificationPref,
 } from "@/lib/notify";
+import {
+  pushSupported,
+  vapidConfigured,
+  getPushSubscriptionState,
+  subscribePush,
+  unsubscribePush,
+} from "@/lib/push";
+
+type PushStatus =
+  | "loading"
+  | "subscribed"
+  | "not-subscribed"
+  | "no-vapid"
+  | "no-permission"
+  | "no-support";
 
 export function NotifyDrawer() {
   const open = useUIStore((s) => s.notifyDrawerOpen);
   const setOpen = useUIStore((s) => s.setNotifyDrawer);
+  const user = useTodoStore((s) => s.user);
   const [pref, setPref] = useState<NotificationPref>(loadPref());
   const [permission, setPermission] = useState<NotificationPermission>(
     notificationPermission(),
   );
+  const [pushStatus, setPushStatus] = useState<PushStatus>("loading");
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushError, setPushError] = useState("");
+
+  async function refreshPushStatus() {
+    if (!pushSupported()) {
+      setPushStatus("no-support");
+      return;
+    }
+    if (!vapidConfigured()) {
+      setPushStatus("no-vapid");
+      return;
+    }
+    const state = await getPushSubscriptionState();
+    setPushStatus(state.subscribed ? "subscribed" : (state.reason as PushStatus) ?? "not-subscribed");
+  }
 
   useEffect(() => {
-    if (open) setPermission(notificationPermission());
+    if (open) {
+      setPermission(notificationPermission());
+      refreshPushStatus();
+    }
   }, [open]);
 
   function update(patch: Partial<NotificationPref>) {
@@ -36,7 +72,6 @@ export function NotifyDrawer() {
     setPermission(notificationPermission());
     if (ok) {
       update({ enabled: true });
-      // 测试通知
       showNotification({
         title: "✅ 通知已开启",
         body: "新私信和任务指派会在此弹出",
@@ -45,7 +80,39 @@ export function NotifyDrawer() {
     }
   }
 
+  async function handleTogglePush() {
+    setPushError("");
+    if (!user) {
+      setPushError("请先登录");
+      return;
+    }
+    setPushBusy(true);
+    try {
+      if (pushStatus === "subscribed") {
+        await unsubscribePush();
+      } else {
+        // 先确保通知权限
+        if (Notification.permission !== "granted") {
+          const ok = await requestNotificationPermission();
+          setPermission(notificationPermission());
+          if (!ok) {
+            setPushError("通知权限被拒绝，请在浏览器设置中开启");
+            return;
+          }
+        }
+        await subscribePush(user.userId);
+        update({ enabled: true });
+      }
+      await refreshPushStatus();
+    } catch (e: any) {
+      setPushError(e.message ?? "操作失败");
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
   const supported = notificationsSupported();
+  const pushReady = pushSupported() && vapidConfigured();
 
   return (
     <Drawer
@@ -104,6 +171,72 @@ export function NotifyDrawer() {
           <p className="mt-3 text-[11px] text-[#a85c4a] leading-relaxed">
             权限被拒后无法在网页中再次申请。
             请到浏览器地址栏左侧的🔒图标 → 通知 → 允许，重新开启。
+          </p>
+        ) : null}
+      </section>
+
+      {/* 息屏推送（Web Push） */}
+      <section className="mb-5 biz-card rounded-lg p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="h-9 w-9 grid place-items-center rounded-full bg-violet/15 text-[#6b5fa8]">
+              <MoonStar size={16} />
+            </span>
+            <div>
+              <div className="text-[13px] font-medium text-ink">息屏推送</div>
+              <div className="mono-meta">
+                {pushStatus === "loading"
+                  ? "检查中…"
+                  : pushStatus === "subscribed"
+                    ? "已开启 · 息屏也能收到"
+                    : pushStatus === "no-support"
+                      ? "当前环境不支持"
+                      : pushStatus === "no-vapid"
+                        ? "服务器未配置"
+                        : pushStatus === "no-permission"
+                          ? "需先开启通知权限"
+                          : "未开启"}
+              </div>
+            </div>
+          </div>
+          {pushReady && pushStatus !== "loading" ? (
+            <Button
+              variant={pushStatus === "subscribed" ? "secondary" : "primary"}
+              size="sm"
+              onClick={handleTogglePush}
+              disabled={pushBusy}
+            >
+              {pushBusy
+                ? "处理中…"
+                : pushStatus === "subscribed"
+                  ? "关闭"
+                  : "开启"}
+            </Button>
+          ) : null}
+        </div>
+        {pushError ? (
+          <p className="mt-3 text-[11px] text-[#a85c4a] leading-relaxed">
+            {pushError}
+          </p>
+        ) : null}
+        {pushReady && pushStatus !== "subscribed" ? (
+          <p className="mt-3 text-[11px] text-muted leading-relaxed">
+            开启后，即使 App 在后台或手机息屏，新私信也会通过系统推送送达。
+          </p>
+        ) : null}
+        {pushStatus === "no-vapid" ? (
+          <p className="mt-3 text-[11px] text-muted leading-relaxed">
+            服务器尚未配置 VAPID 推送密钥。请管理员运行
+            <code className="mx-1 px-1 bg-bg-soft rounded text-[10px]">
+              node scripts/gen-vapid.mjs
+            </code>
+            并配置到 Supabase secrets。
+          </p>
+        ) : null}
+        {pushStatus === "no-support" ? (
+          <p className="mt-3 text-[11px] text-muted leading-relaxed">
+            当前浏览器不支持 Web Push。iOS 需 Safari 16.4+ 并「添加到主屏幕」；
+            Android 需安装 PWA 或使用 Chrome。
           </p>
         ) : null}
       </section>

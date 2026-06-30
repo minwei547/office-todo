@@ -7,6 +7,7 @@
 -- ============================================
 
 -- 清理旧表（如果存在）
+DROP TABLE IF EXISTS push_subscriptions CASCADE;
 DROP TABLE IF EXISTS messages CASCADE;
 DROP TABLE IF EXISTS notes CASCADE;
 DROP TABLE IF EXISTS activities CASCADE;
@@ -92,6 +93,16 @@ CREATE TABLE messages (
   "read" BOOLEAN NOT NULL DEFAULT FALSE
 );
 
+-- 7. 推送订阅表（Web Push，用于息屏通知）
+CREATE TABLE push_subscriptions (
+  "subscriptionId" TEXT PRIMARY KEY,
+  "userId" TEXT NOT NULL,
+  "endpoint" TEXT NOT NULL,
+  "p256dh" TEXT NOT NULL,
+  "auth" TEXT NOT NULL,
+  "createdAt" BIGINT NOT NULL
+);
+
 -- ============================================
 -- 索引（列名也要加双引号）
 -- 针对数据量增长的查询路径优化：
@@ -128,6 +139,9 @@ CREATE INDEX idx_messages_conv_timestamp ON messages("conversationId", "timestam
 CREATE INDEX idx_messages_receiver_read ON messages("receiverId", "read");
 CREATE INDEX idx_messages_teamId ON messages("teamId");
 
+-- 推送订阅：按 userId 查询用户的所有设备订阅
+CREATE INDEX idx_push_subs_userId ON push_subscriptions("userId");
+
 -- ============================================
 -- RLS 策略（允许 anon 角色完全访问所有表）
 -- 注意：这是内部团队工具，不做细粒度权限控制
@@ -142,6 +156,7 @@ ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- users 表：允许 anon 全部操作（前端直连，安全性由应用层校验）
 CREATE POLICY "anon_all_users" ON users
@@ -185,6 +200,12 @@ CREATE POLICY "anon_all_messages" ON messages
   USING (true)
   WITH CHECK (true);
 
+-- push_subscriptions 表：允许 anon 全部操作（前端直连读写订阅）
+CREATE POLICY "anon_all_push_subs" ON push_subscriptions
+  FOR ALL TO anon
+  USING (true)
+  WITH CHECK (true);
+
 -- ============================================
 -- Storage bucket：私信图片
 -- ============================================
@@ -207,5 +228,5 @@ NOTIFY pgrst, 'reload schema';
 -- 完成提示
 DO $$
 BEGIN
-  RAISE NOTICE '✅ 建表完成！共创建 7 张表 + 18 个索引 + 7 条 RLS 策略 + 1 个 Storage bucket（所有驼峰列名已加双引号）';
+  RAISE NOTICE '✅ 建表完成！共创建 8 张表 + 19 个索引 + 8 条 RLS 策略 + 1 个 Storage bucket（所有驼峰列名已加双引号）';
 END $$;

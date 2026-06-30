@@ -21,6 +21,13 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
+      // 使用 injectManifest 模式：自定义 Service Worker 以支持 Web Push 事件
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2}'],
+      },
       includeAssets: ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png'],
       manifest: {
         name: '待办清单 · 办公室协同',
@@ -39,31 +46,6 @@ export default defineConfig({
           { src: '/pwa-512.png', sizes: '512x512', type: 'image/png' },
           { src: '/pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
           { src: '/pwa-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-        ],
-      },
-      workbox: {
-        // 预缓存应用壳与静态资源
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2}'],
-        // 不缓存 Supabase API 与字体外部请求（由运行时缓存处理）
-        navigateFallback: '/index.html',
-        runtimeCaching: [
-          {
-            // Google Fonts
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-stylesheets',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-webfonts',
-              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
         ],
       },
       devOptions: {

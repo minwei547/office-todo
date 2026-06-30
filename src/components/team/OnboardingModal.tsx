@@ -14,6 +14,8 @@ export function OnboardingModal() {
 
   const createTeam = useTodoStore((s) => s.createTeam);
   const joinTeam = useTodoStore((s) => s.joinTeam);
+  // 防御性守卫：登录/加载期间禁止创建/加入团队，避免重复身份
+  const authLoading = useTodoStore((s) => s.authLoading);
 
   const [tab, setTab] = useState<Tab>("create");
   const [nickname, setNickname] = useState("");
@@ -51,6 +53,10 @@ export function OnboardingModal() {
 
   async function submit() {
     setError("");
+    if (authLoading) {
+      setError("正在登录/加载中，请稍候再试");
+      return;
+    }
     const nick = nickname.trim();
     if (!nick) {
       setError("请先填写你的昵称");
@@ -214,14 +220,16 @@ export function OnboardingModal() {
               size="lg"
               className="w-full"
               onClick={submit}
-              disabled={submitting}
+              disabled={submitting || authLoading}
               trailingIcon={<ArrowRight size={15} />}
             >
               {submitting
                 ? "处理中…"
-                : tab === "create"
-                  ? "创建并进入团队"
-                  : "加入团队"}
+                : authLoading
+                  ? "正在登录…"
+                  : tab === "create"
+                    ? "创建并进入团队"
+                    : "加入团队"}
             </Button>
 
             <p className="text-center text-[12px] text-dim">
