@@ -15,13 +15,11 @@ export async function initCapacitor(): Promise<void> {
   if (initialized) return;
   initialized = true;
 
-  // Web 端不需要初始化原生插件
   if (!Capacitor.isNativePlatform()) {
     return;
   }
 
   try {
-    // 动态导入，避免 Web 端打包原生插件代码
     const { StatusBar, Style } = await import('@capacitor/status-bar');
     await StatusBar.setStyle({ style: Style.Dark });
     await StatusBar.setBackgroundColor({ color: '#fcfcfe' });
@@ -42,10 +40,43 @@ export async function initCapacitor(): Promise<void> {
   } catch {
     /* keyboard 不可用，忽略 */
   }
+
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    await LocalNotifications.createChannel({
+      id: 'default',
+      name: '消息通知',
+      description: '私信和任务通知',
+      importance: 5,
+      visibility: 1,
+      sound: 'default',
+      vibration: true,
+      lights: true,
+    });
+  } catch {
+    /* ignore */
+  }
 }
 
 export function isNativeApp(): boolean {
   return Capacitor.isNativePlatform();
+}
+
+/**
+ * 检查原生通知权限状态
+ * 返回 'granted' | 'denied' | 'default'
+ */
+export async function getNativeNotificationPermission(): Promise<NotificationPermission> {
+  if (!Capacitor.isNativePlatform()) return 'default';
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    const perm = await LocalNotifications.checkPermissions();
+    if (perm.display === 'granted') return 'granted';
+    if (perm.display === 'denied') return 'denied';
+    return 'default';
+  } catch {
+    return 'denied';
+  }
 }
 
 /**
@@ -57,14 +88,29 @@ export async function requestNativeNotificationPermission(): Promise<boolean> {
   try {
     const { LocalNotifications } = await import('@capacitor/local-notifications');
     const perm = await LocalNotifications.requestPermissions();
-    return perm.display === 'granted';
+    if (perm.display === 'granted') {
+      try {
+        await LocalNotifications.createChannel({
+          id: 'default',
+          name: '消息通知',
+          description: '私信和任务通知',
+          importance: 5,
+          visibility: 1,
+          sound: 'default',
+          vibration: true,
+          lights: true,
+        });
+      } catch { /* ignore */ }
+      return true;
+    }
+    return false;
   } catch {
     return false;
   }
 }
 
 /**
- * 在原生 App 中弹出本地通知（不需要推送服务，App 在后台也能弹）。
+ * 在原生 App 中弹出本地通知。
  * @param title 通知标题
  * @param body 通知内容
  * @param notificationId 通知唯一ID（防止重复）
@@ -79,15 +125,17 @@ export async function scheduleNativeNotification(
     const { LocalNotifications } = await import('@capacitor/local-notifications');
     const perm = await LocalNotifications.checkPermissions();
     if (perm.display !== 'granted') return;
+    const id = notificationId ?? Math.floor(Math.random() * 100000) + Date.now() % 10000;
     await LocalNotifications.schedule({
       notifications: [
         {
           title,
           body,
-          id: notificationId ?? Math.floor(Math.random() * 100000),
+          id,
           schedule: { at: new Date(Date.now() + 100) },
           sound: 'default',
-          smallIcon: 'ic_stat_icon',
+          channelId: 'default',
+          autoCancel: true,
         },
       ],
     });

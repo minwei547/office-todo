@@ -1,30 +1,22 @@
 /**
  * 通知模块
  * - 请求系统通知权限
- * - 在前台/后台时弹系统通知（PWA 安装后、息屏仍可弹）
+ * - 在前台/后台时弹系统通知
  * - 通知点击聚焦窗口并跳转
  * - 偏好持久化在 localStorage
  *
- * 设计：本应用是前端直连 Supabase + 5s 轮询同步的架构，
- * 没有独立后端推送服务。因此采用「应用运行时检测到事件就弹通知」的方案：
- * · App 在前台：通过 socket 轮询检测到新事件立即弹通知
- * · App 在后台/息屏：Service Worker 常驻，监听 visibilitychange 与
- *   定时唤起，仍然能在已安装的 PWA 中弹通知（受系统后台策略影响）
- * · 三端通用：Web / iOS PWA(16.4+) / Android PWA / Capacitor 原生壳
+ * 三端支持：
+ * - Capacitor 原生 App（安卓/iOS）：使用 LocalNotifications 插件弹原生通知
+ * - Web / PWA：使用浏览器 Notification API + Web Push 息屏推送
  */
 
 const PREF_KEY = "office-todo-notify-pref";
 
 export type NotificationPref = {
-  /** 总开关 */
   enabled: boolean;
-  /** 新私信到达 */
   dm: boolean;
-  /** 任务被指派给我 */
   assigned: boolean;
-  /** 我负责的任务状态变更 */
   taskUpdated: boolean;
-  /** 振动（移动端） */
   vibrate: boolean;
 };
 
@@ -32,7 +24,7 @@ export const DEFAULT_PREF: NotificationPref = {
   enabled: true,
   dm: true,
   assigned: true,
-  taskUpdated: false, // 默认关，避免太吵
+  taskUpdated: false,
   vibrate: true,
 };
 
@@ -50,23 +42,47 @@ export function savePref(pref: NotificationPref) {
   localStorage.setItem(PREF_KEY, JSON.stringify(pref));
 }
 
-/** 浏览器/PWA 是否支持通知 API */
-export function notificationsSupported(): boolean {
-  return typeof window !== "undefined" && "Notification" in window;
+let _isNativeCache: boolean | null = null;
+async function isNative(): Promise<boolean> {
+  if (_isNativeCache !== null) return _isNativeCache;
+  try {
+    const { isNativeApp } = await import("./capacitor");
+    _isNativeCache = isNativeApp();
+  } catch {
+    _isNativeCache = false;
+  }
+  return _isNativeCache;
 }
 
-/** 当前权限状态 */
-export function notificationPermission(): NotificationPermission {
-  if (!notificationsSupported()) return "denied";
+export function notificationsSupported(): boolean {
+  return true;
+}
+
+let _nativePermCache: NotificationPermission = "default";
+export async function checkNotificationPermission(): Promise<NotificationPermission> {
+  if (await isNative()) {
+    const { getNativeNotificationPermission } = await import("./capacitor");
+    _nativePermCache = await getNativeNotificationPermission();
+    return _nativePermCache;
+  }
+  if (typeof window === "undefined" || !("Notification" in window)) return "denied";
   return Notification.permission;
 }
 
-/**
- * 请求通知权限。返回是否获得授权。
- * 注意：iOS Safari 必须在用户手势中调用。
- */
+export function notificationPermission(): NotificationPermission {
+  if (_isNativeCache) return _nativePermCache;
+  if (typeof window === "undefined" || !("Notification" in window)) return "denied";
+  return Notification.permission;
+}
+
 export async function requestNotificationPermission(): Promise<boolean> {
-  if (!notificationsSupported()) return false;
+  if (await isNative()) {
+    const { requestNativeNotificationPermission } = await import("./capacitor");
+    const ok = await requestNativeNotificationPermission();
+    _nativePermCache = ok ? "granted" : "denied";
+    return ok;
+  }
+  if (typeof window === "undefined" || !("Notification" in window)) return false;
   if (Notification.permission === "granted") return true;
   if (Notification.permission === "denied") return false;
   const result = await Notification.requestPermission();
@@ -82,27 +98,20 @@ interface ShowOptions {
   onClick?: () => void;
 }
 
-/**
- * 弹出系统通知。若 App 在前台且 document 可见，仍弹（用户能看到）。
- * 在 PWA 安装后，息屏也能弹。
- * 在 Capacitor 原生壳中使用 LocalNotifications，后台存活更稳定。
- */
 export function showNotification(opts: ShowOptions): void {
   const pref = loadPref();
   if (!pref.enabled) return;
 
-  // 原生 App 中使用 Capacitor LocalNotifications（不依赖 FCM，后台更稳定）
-  import("./capacitor").then(({ isNativeApp, scheduleNativeNotification }) => {
+  import("./capacitor").then(async ({ isNativeApp, scheduleNativeNotification }) => {
     if (isNativeApp()) {
-      scheduleNativeNotification(opts.title, opts.body);
+      await scheduleNativeNotification(opts.title, opts.body);
       if (pref.vibrate && "vibrate" in navigator) {
         try { navigator.vibrate([60, 30, 60]); } catch { /* ignore */ }
       }
       return;
     }
 
-    // Web / PWA 走浏览器 Notification API
-    if (!notificationsSupported()) return;
+    if (typeof window === "undefined" || !("Notification" in window)) return;
     if (Notification.permission !== "granted") return;
     try {
       const n = new Notification(opts.title, {
@@ -119,19 +128,14 @@ export function showNotification(opts: ShowOptions): void {
         n.close();
       };
       if (pref.vibrate && "vibrate" in navigator) {
-        try {
-          navigator.vibrate([60, 30, 60]);
-        } catch {
-          /* ignore */
-        }
+        try { navigator.vibrate([60, 30, 60]); } catch { /* ignore */ }
       }
     } catch {
-      /* Notification 构造可能失败（iOS PWA 限制），忽略 */
+      /* ignore */
     }
   });
 }
 
-/** 私信通知：收到他人发来的消息时调用 */
 export function notifyDM(senderName: string, preview: string): void {
   const pref = loadPref();
   if (!pref.dm) return;
@@ -141,13 +145,11 @@ export function notifyDM(senderName: string, preview: string): void {
     tag: "dm",
     data: { url: "/?dm=1" },
     onClick: () => {
-      // 触发打开私信抽屉（通过 URL 参数由 App 处理）
       window.dispatchEvent(new CustomEvent("app:open-dm"));
     },
   });
 }
 
-/** 任务指派通知 */
 export function notifyAssigned(taskTitle: string, byName?: string): void {
   const pref = loadPref();
   if (!pref.assigned) return;
@@ -161,7 +163,6 @@ export function notifyAssigned(taskTitle: string, byName?: string): void {
   });
 }
 
-/** 任务状态/进度变更通知 */
 export function notifyTaskUpdated(taskTitle: string, change: string): void {
   const pref = loadPref();
   if (!pref.taskUpdated) return;
