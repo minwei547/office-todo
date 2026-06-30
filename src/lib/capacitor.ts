@@ -62,3 +62,36 @@ export async function requestNativeNotificationPermission(): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * 在原生 App 中弹出本地通知（不需要推送服务，App 在后台也能弹）。
+ * @param title 通知标题
+ * @param body 通知内容
+ * @param notificationId 通知唯一ID（防止重复）
+ */
+export async function scheduleNativeNotification(
+  title: string,
+  body: string,
+  notificationId?: number,
+): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    const { LocalNotifications } = await import('@capacitor/local-notifications');
+    const perm = await LocalNotifications.checkPermissions();
+    if (perm.display !== 'granted') return;
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          title,
+          body,
+          id: notificationId ?? Math.floor(Math.random() * 100000),
+          schedule: { at: new Date(Date.now() + 100) },
+          sound: 'default',
+          smallIcon: 'ic_stat_icon',
+        },
+      ],
+    });
+  } catch {
+    /* ignore */
+  }
+}

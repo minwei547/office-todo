@@ -4,13 +4,10 @@ const config: CapacitorConfig = {
   appId: 'com.office.todo',
   appName: '待办清单',
   webDir: 'dist',
-  // 已部署的线上地址，构建后从线上拉取可保持三端同步
+  // App 直接加载线上地址，与网页版完全同步，更新无需重新发版
   server: {
     androidScheme: 'https',
-    // 注释掉 url 则使用打包进 App 的 dist 静态资源
-    // 若需 App 与网页完全同步（无需重新发版即可更新 UI），
-    // 取消下行注释指向线上地址：
-    // url: 'https://office-todo.pages.dev',
+    url: 'https://office-todo.pages.dev',
     cleartext: false,
   },
   android: {

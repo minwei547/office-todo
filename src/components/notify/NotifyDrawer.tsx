@@ -631,8 +631,23 @@ function BrowserSupportBanner({
       {/* 手机端才显示浏览器推荐 */}
       {pwa.isMobile ? (
         <div className="mt-3 pt-3 border-t border-mint/20">
+          {/* 安卓 APK 下载入口 */}
+          {(pwa.isAndroid || pwa.isHarmonyOS) && !pwa.isEdge ? (
+            <a
+              href="/office-todo.apk"
+              download="待办清单.apk"
+              className="flex items-center gap-2 p-2.5 mb-2 rounded-lg bg-[#4a7a68] text-white hover:bg-[#3d6657] transition-colors"
+            >
+              <Smartphone size={16} className="flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-[12px] font-medium">📥 下载安卓 APK 安装包</div>
+                <div className="text-[10px] text-white/80">安装后通知更稳定，无需折腾浏览器（推荐）</div>
+              </div>
+              <Download size={14} className="flex-shrink-0" />
+            </a>
+          ) : null}
           <div className="text-[11px] font-medium text-[#4a7a68] mb-2">
-            📱 推荐浏览器（息屏推送最稳定）
+            📱 {pwa.isAndroid || pwa.isHarmonyOS ? "如果不装App，推荐浏览器" : "推荐浏览器"}（息屏推送最稳定）
           </div>
           {pwa.isIOS ? (
             <div className="space-y-1.5">

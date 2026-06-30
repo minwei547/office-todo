@@ -85,36 +85,50 @@ interface ShowOptions {
 /**
  * 弹出系统通知。若 App 在前台且 document 可见，仍弹（用户能看到）。
  * 在 PWA 安装后，息屏也能弹。
+ * 在 Capacitor 原生壳中使用 LocalNotifications，后台存活更稳定。
  */
 export function showNotification(opts: ShowOptions): void {
-  if (!notificationsSupported()) return;
-  if (Notification.permission !== "granted") return;
   const pref = loadPref();
   if (!pref.enabled) return;
-  try {
-    const n = new Notification(opts.title, {
-      body: opts.body,
-      tag: opts.tag,
-      icon: opts.icon ?? "/pwa-192.png",
-      badge: "/pwa-192.png",
-      data: opts.data,
-      silent: false,
-    });
-    n.onclick = () => {
-      window.focus();
-      opts.onClick?.();
-      n.close();
-    };
-    if (pref.vibrate && "vibrate" in navigator) {
-      try {
-        navigator.vibrate([60, 30, 60]);
-      } catch {
-        /* ignore */
+
+  // 原生 App 中使用 Capacitor LocalNotifications（不依赖 FCM，后台更稳定）
+  import("./capacitor").then(({ isNativeApp, scheduleNativeNotification }) => {
+    if (isNativeApp()) {
+      scheduleNativeNotification(opts.title, opts.body);
+      if (pref.vibrate && "vibrate" in navigator) {
+        try { navigator.vibrate([60, 30, 60]); } catch { /* ignore */ }
       }
+      return;
     }
-  } catch {
-    /* Notification 构造可能失败（iOS PWA 限制），忽略 */
-  }
+
+    // Web / PWA 走浏览器 Notification API
+    if (!notificationsSupported()) return;
+    if (Notification.permission !== "granted") return;
+    try {
+      const n = new Notification(opts.title, {
+        body: opts.body,
+        tag: opts.tag,
+        icon: opts.icon ?? "/pwa-192.png",
+        badge: "/pwa-192.png",
+        data: opts.data,
+        silent: false,
+      });
+      n.onclick = () => {
+        window.focus();
+        opts.onClick?.();
+        n.close();
+      };
+      if (pref.vibrate && "vibrate" in navigator) {
+        try {
+          navigator.vibrate([60, 30, 60]);
+        } catch {
+          /* ignore */
+        }
+      }
+    } catch {
+      /* Notification 构造可能失败（iOS PWA 限制），忽略 */
+    }
+  });
 }
 
 /** 私信通知：收到他人发来的消息时调用 */
