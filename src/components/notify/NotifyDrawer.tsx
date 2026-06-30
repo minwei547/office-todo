@@ -432,12 +432,62 @@ function BrowserSupportBanner({
   // 已安装的 PWA 不显示提示
   if (pwa.installed) return null;
 
-  if (support === "supported") {
-    // 浏览器支持，显示绿色提示
+  // ── 不支持的浏览器：红色警告 ──
+  if (support !== "supported") {
+    const config: Record<
+      string,
+      { title: string; body: string; action: string }
+    > = {
+      wechat: {
+        title: "微信内不支持推送",
+        body: "微信内置浏览器屏蔽了推送功能，无法收到息屏通知。",
+        action: "点右上角 ⋯ → 在浏览器中打开，用系统浏览器继续。",
+      },
+      qq: {
+        title: "QQ 浏览器内不支持推送",
+        body: "QQ 浏览器屏蔽了推送 API，无法收到息屏通知。",
+        action: "请复制链接到 Chrome / Edge / Safari 中打开。",
+      },
+      "ios-non-safari": {
+        title: "iPhone 需用 Safari",
+        body: "iOS 上 Chrome / Edge / Firefox 都不支持推送，只有 Safari 支持。",
+        action: "请复制链接到 Safari 打开，并「添加到主屏幕」后从图标启动。",
+      },
+      "old-ios": {
+        title: "iOS 版本过低",
+        body: "iOS 16.4 以上才支持息屏推送通知。",
+        action: "请到 设置 → 通用 → 软件更新 升级 iOS 后再试。",
+      },
+      unknown: {
+        title: "浏览器兼容性未知",
+        body: "无法确认当前浏览器是否支持息屏推送。",
+        action: "推荐使用 Chrome / Edge / Safari 打开本网站。",
+      },
+    };
+
+    const c = config[support] || config.unknown;
+
     return (
-      <div className="biz-card rounded-lg p-3 mb-4 bg-mint-soft/40 border-mint/30 flex items-start gap-2">
+      <div className="biz-card rounded-lg p-3 mb-4 bg-peach-soft border-peach flex items-start gap-2">
+        <AlertTriangle size={14} className="text-[#a85c4a] mt-0.5 flex-shrink-0" />
+        <div className="text-[12px] leading-relaxed">
+          <div className="font-medium text-[#a85c4a]">{c.title}</div>
+          <div className="text-[#7a4a3d] mt-0.5">{c.body}</div>
+          <div className="text-[#a85c4a] mt-1 flex items-start gap-1">
+            <ArrowRight size={11} className="mt-0.5 flex-shrink-0" />
+            <span>{c.action}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 浏览器支持：绿色提示 + 手机端推荐浏览器 ──
+  return (
+    <div className="biz-card rounded-lg p-3 mb-4 bg-mint-soft/40 border-mint/30">
+      <div className="flex items-start gap-2">
         <CheckCircle2 size={14} className="text-[#4a7a68] mt-0.5 flex-shrink-0" />
-        <div className="text-[12px] text-[#3d5a4f] leading-relaxed">
+        <div className="text-[12px] text-[#3d5a4f] leading-relaxed flex-1">
           <span className="font-medium">当前浏览器支持息屏推送</span>
           <span className="text-muted ml-1">·</span>
           <span className="text-muted ml-1">
@@ -445,54 +495,64 @@ function BrowserSupportBanner({
           </span>
         </div>
       </div>
-    );
-  }
 
-  // 不支持的浏览器，显示警告 + 替代方案
-  const config: Record<
-    string,
-    { title: string; body: string; action: string }
-  > = {
-    wechat: {
-      title: "微信内不支持推送",
-      body: "微信内置浏览器屏蔽了 Service Worker 和推送 API，无法收到息屏通知。",
-      action: "点右上角 ⋯ → 在浏览器中打开，用系统浏览器继续。",
-    },
-    qq: {
-      title: "QQ 浏览器内不支持推送",
-      body: "QQ 浏览器屏蔽了推送 API，无法收到息屏通知。",
-      action: "请复制链接到 Chrome / Edge / Safari 中打开。",
-    },
-    "ios-non-safari": {
-      title: "iPhone 需用 Safari",
-      body: "iOS 上 Chrome / Edge / Firefox 都不支持 Web Push，只有 Safari 支持。",
-      action: "请复制链接到 Safari 打开，并「添加到主屏幕」后从图标启动。",
-    },
-    "old-ios": {
-      title: "iOS 版本过低",
-      body: "iOS 16.4 以上才支持 Web Push 通知。",
-      action: "请到 设置 → 通用 → 软件更新 升级 iOS 后再试。",
-    },
-    unknown: {
-      title: "浏览器兼容性未知",
-      body: "无法确认当前浏览器是否支持息屏推送。",
-      action: "推荐使用 Chrome / Edge / Safari 打开本网站。",
-    },
-  };
-
-  const c = config[support] || config.unknown;
-
-  return (
-    <div className="biz-card rounded-lg p-3 mb-4 bg-peach-soft border-peach flex items-start gap-2">
-      <AlertTriangle size={14} className="text-[#a85c4a] mt-0.5 flex-shrink-0" />
-      <div className="text-[12px] leading-relaxed">
-        <div className="font-medium text-[#a85c4a]">{c.title}</div>
-        <div className="text-[#7a4a3d] mt-0.5">{c.body}</div>
-        <div className="text-[#a85c4a] mt-1 flex items-start gap-1">
-          <ArrowRight size={11} className="mt-0.5 flex-shrink-0" />
-          <span>{c.action}</span>
+      {/* 手机端才显示浏览器推荐 */}
+      {pwa.isMobile ? (
+        <div className="mt-3 pt-3 border-t border-mint/20">
+          <div className="text-[11px] font-medium text-[#4a7a68] mb-2">
+            📱 推荐浏览器（息屏推送最稳定）
+          </div>
+          {pwa.isIOS ? (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 text-[12px] text-ink">
+                <span className="h-5 w-5 grid place-items-center rounded bg-[#007AFF]/10 text-[#007AFF] text-[10px] font-bold">S</span>
+                <span className="font-medium">Safari</span>
+                <span className="text-muted text-[11px]">（系统自带，iPhone 唯一选择）</span>
+              </div>
+              <p className="text-[11px] text-muted leading-relaxed pl-7">
+                必须用 Safari 打开 → 添加到主屏幕 → 从桌面图标启动，才能收到息屏推送。
+              </p>
+            </div>
+          ) : pwa.isHarmonyOS ? (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 text-[12px] text-ink">
+                <span className="h-5 w-5 grid place-items-center rounded bg-[#4285F4]/10 text-[#4285F4] text-[10px] font-bold">C</span>
+                <span className="font-medium">Chrome（谷歌浏览器）</span>
+                <span className="text-muted text-[11px]">⭐ 首选</span>
+              </div>
+              <div className="flex items-center gap-2 text-[12px] text-ink">
+                <span className="h-5 w-5 grid place-items-center rounded bg-[#0078D4]/10 text-[#0078D4] text-[10px] font-bold">E</span>
+                <span className="font-medium">Edge（微软浏览器）</span>
+                <span className="text-muted text-[11px]">稳定</span>
+              </div>
+              <p className="text-[11px] text-muted leading-relaxed pl-7">
+                华为应用市场搜索"Chrome"下载安装。安装后建议：设置 → 电池 → 应用启动管理 → 允许后台活动。
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 text-[12px] text-ink">
+                <span className="h-5 w-5 grid place-items-center rounded bg-[#4285F4]/10 text-[#4285F4] text-[10px] font-bold">C</span>
+                <span className="font-medium">Chrome（谷歌浏览器）</span>
+                <span className="text-muted text-[11px]">⭐ 首选，最稳定</span>
+              </div>
+              <div className="flex items-center gap-2 text-[12px] text-ink">
+                <span className="h-5 w-5 grid place-items-center rounded bg-[#1458A9]/10 text-[#1458A9] text-[10px] font-bold">S</span>
+                <span className="font-medium">三星浏览器</span>
+                <span className="text-muted text-[11px]">三星手机自带</span>
+              </div>
+              <div className="flex items-center gap-2 text-[12px] text-ink">
+                <span className="h-5 w-5 grid place-items-center rounded bg-[#0078D4]/10 text-[#0078D4] text-[10px] font-bold">E</span>
+                <span className="font-medium">Edge（微软浏览器）</span>
+                <span className="text-muted text-[11px]">稳定</span>
+              </div>
+              <p className="text-[11px] text-[#a85c4a] leading-relaxed pl-7">
+                ⚠️ 微信/QQ/UC/夸克内置浏览器不支持推送，请复制链接到系统浏览器打开。
+              </p>
+            </div>
+          )}
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

@@ -27,12 +27,16 @@ export interface PwaInstallState {
   installing: boolean;
   /** 是否是 Android 平台 */
   isAndroid: boolean;
+  /** 是否是鸿蒙（HarmonyOS）平台 */
+  isHarmonyOS: boolean;
   /** 是否是微信内置浏览器（不支持 Service Worker） */
   isWeChat: boolean;
   /** 是否是 QQ 内置浏览器 */
   isQQ: boolean;
   /** 是否是桌面端 */
   isDesktop: boolean;
+  /** 是否是手机端（非桌面） */
+  isMobile: boolean;
 }
 
 /** 浏览器对 Web Push 的支持状态 */
@@ -52,9 +56,11 @@ export function usePwaInstall() {
     isSafari: false,
     installing: false,
     isAndroid: false,
+    isHarmonyOS: false,
     isWeChat: false,
     isQQ: false,
     isDesktop: false,
+    isMobile: false,
   });
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
@@ -73,10 +79,12 @@ export function usePwaInstall() {
       // iPadOS 13+ 伪装成 macOS
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua);
-    const isAndroid = /Android/.test(ua);
+    const isHarmonyOS = /HarmonyOS|HMSCore/i.test(ua);
+    const isAndroid = /Android/.test(ua) && !isHarmonyOS;
     const isWeChat = /MicroMessenger/i.test(ua);
     const isQQ = /QQBrowser|QQ\//i.test(ua) && !isWeChat;
-    const isDesktop = !isIOS && !isAndroid;
+    const isMobile = isIOS || isAndroid || isHarmonyOS;
+    const isDesktop = !isMobile;
 
     setState((s) => ({
       ...s,
@@ -84,9 +92,11 @@ export function usePwaInstall() {
       isIOS,
       isSafari,
       isAndroid,
+      isHarmonyOS,
       isWeChat,
       isQQ,
       isDesktop,
+      isMobile,
     }));
 
     // 监听 beforeinstallprompt（仅 Android Chrome / 桌面 Chromium 浏览器）
