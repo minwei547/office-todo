@@ -344,30 +344,47 @@ function InstallGuide({ pwa, isNative }: { pwa: ReturnType<typeof usePwaInstall>
     return (
       <div className="biz-card rounded-lg p-3 mb-4 bg-mint-soft/40 border-mint/30">
         <div className="text-[12px] font-medium text-[#3d5a4f] mb-2">
-          📱 iPhone 请添加到主屏幕
+          📱 iPhone 开启息屏推送（共5步）
         </div>
-        <ol className="space-y-1.5 text-[11px] text-ink leading-relaxed">
+        <ol className="space-y-2 text-[11px] text-ink leading-relaxed">
           <li className="flex gap-2">
             <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-[#007AFF]/15 text-[#007AFF] text-[10px] font-semibold">1</span>
-            <span className="flex items-center gap-1">
-              点击 Safari 底部的
-              <Share size={12} className="inline text-[#007AFF]" />
-              分享按钮
+            <span>
+              用 <strong>Safari 浏览器</strong>打开本网页（Chrome/Edge 不行）
             </span>
           </li>
           <li className="flex gap-2">
             <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-[#007AFF]/15 text-[#007AFF] text-[10px] font-semibold">2</span>
-            <span>上滑找到「添加到主屏幕」→ 点右上角「添加」</span>
+            <span className="flex items-center gap-1">
+              点击 Safari 底部的
+              <Share size={12} className="inline text-[#007AFF]" />
+              <strong>分享按钮</strong>（方框向上箭头）
+            </span>
           </li>
           <li className="flex gap-2">
             <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-[#007AFF]/15 text-[#007AFF] text-[10px] font-semibold">3</span>
-            <span><strong className="text-[#4a7a68]">关掉 Safari</strong>，从桌面图标打开</span>
+            <span>
+              上滑到底部，找到「<strong>添加到主屏幕</strong>」<br/>
+              <span className="text-muted">找不到？点底部「编辑操作」→ 添加「添加到主屏幕」</span>
+            </span>
           </li>
           <li className="flex gap-2">
             <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-[#007AFF]/15 text-[#007AFF] text-[10px] font-semibold">4</span>
-            <span>首次打开时允许通知权限</span>
+            <span>
+              <strong className="text-[#a85c4a]">关键步骤</strong>：打开「<strong>作为网页 App 打开</strong>」开关，然后点右上角「添加」
+            </span>
+          </li>
+          <li className="flex gap-2">
+            <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-[#007AFF]/15 text-[#007AFF] text-[10px] font-semibold">5</span>
+            <span>
+              <strong className="text-[#4a7a68]">关掉 Safari</strong>，从桌面图标打开 App，首次打开会弹通知权限，点「<strong>允许</strong>」
+            </span>
           </li>
         </ol>
+        <div className="mt-2 pt-2 border-t border-mint/20 text-[10px] text-muted leading-relaxed">
+          <p>还需检查：iPhone <strong>设置</strong> → <strong>通知</strong> → 找到本 App → 打开「允许通知」+「锁定屏幕」+「声音」</p>
+          <p className="mt-1">要求 iOS 16.4 及以上，低版本不支持息屏推送</p>
+        </div>
       </div>
     );
   }

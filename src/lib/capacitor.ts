@@ -41,6 +41,7 @@ export async function initCapacitor(): Promise<void> {
     /* keyboard 不可用，忽略 */
   }
 
+  // 创建通知通道
   try {
     const { LocalNotifications } = await import('@capacitor/local-notifications');
     await LocalNotifications.createChannel({
@@ -53,6 +54,13 @@ export async function initCapacitor(): Promise<void> {
       vibration: true,
       lights: true,
     });
+
+    // App 首次启动时自动请求通知权限（Android 13+ 需要）
+    // 如果用户还没做过选择（default 状态），弹出系统权限对话框
+    const perm = await LocalNotifications.checkPermissions();
+    if (perm.display === 'prompt') {
+      await LocalNotifications.requestPermissions();
+    }
   } catch {
     /* ignore */
   }
