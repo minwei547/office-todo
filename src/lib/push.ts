@@ -94,12 +94,36 @@ export async function subscribePush(userId: string): Promise<boolean> {
   // 2. 订阅 Push API
   const reg = await navigator.serviceWorker.ready;
   const existing = await reg.pushManager.getSubscription();
-  const sub =
-    existing ||
-    (await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-    }));
+  let sub: PushSubscription;
+  try {
+    sub =
+      existing ||
+      (await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      }));
+  } catch (err: any) {
+    const msg = String(err?.message || err || "");
+    // 国内网络无法连接 Google FCM 推送服务（Chrome/Edge/Chromium 内核都用 FCM）
+    if (
+      msg.includes("push service error") ||
+      msg.includes("Registration failed") ||
+      msg.includes("gcm") ||
+      msg.includes("fcm") ||
+      msg.includes("network")
+    ) {
+      const ua = navigator.userAgent;
+      const isFirefox = /Firefox|FxiOS/i.test(ua);
+      if (isFirefox) {
+        throw new Error("推送服务连接失败，请检查网络后重试");
+      } else {
+        throw new Error(
+          "推送服务注册失败：Chrome/Edge 等浏览器依赖 Google 推送服务（FCM），国内网络无法连接。\n\n💡 解决方法：请换用「火狐 Firefox」浏览器（国内应用商店可下载），Firefox 使用 Mozilla 自己的推送服务，国内可正常使用。"
+        );
+      }
+    }
+    throw new Error("推送订阅失败：" + msg);
+  }
 
   // 3. 保存到 Supabase
   const subJson = sub.toJSON();

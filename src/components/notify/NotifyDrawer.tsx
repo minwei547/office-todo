@@ -364,7 +364,7 @@ export function NotifyDrawer() {
           ) : null}
         </div>
         {pushError ? (
-          <p className="mt-3 text-[11px] text-[#a85c4a] leading-relaxed">
+          <p className="mt-3 text-[11px] text-[#a85c4a] leading-relaxed whitespace-pre-line">
             {pushError}
           </p>
         ) : null}
@@ -647,58 +647,53 @@ function BrowserSupportBanner({
             </div>
           ) : pwa.isHarmonyOS ? (
             <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-[12px] text-ink">
-                <span className="h-5 w-5 grid place-items-center rounded bg-[#6B46C1]/10 text-[#6B46C1] text-[10px] font-bold">狐</span>
-                <span className="font-medium">狐猴浏览器（Lemur）</span>
-                <span className="text-muted text-[11px]">⭐ 国内首选，应用商店可下</span>
-              </div>
-              <div className="flex items-center gap-2 text-[12px] text-ink">
-                <span className="h-5 w-5 grid place-items-center rounded bg-[#4285F4]/10 text-[#4285F4] text-[10px] font-bold">C</span>
-                <span className="font-medium">Chrome（谷歌浏览器）</span>
-                <span className="text-muted text-[11px]">稳定</span>
+              <div className="bg-[#a85c4a]/10 border border-[#a85c4a]/20 rounded p-2 mb-1">
+                <p className="text-[11px] text-[#a85c4a] leading-relaxed font-medium">
+                  ⚠️ 国内用户重要提示：Chrome/Edge/狐猴等 Chromium 内核浏览器依赖 Google FCM 推送服务，国内网络无法连接，息屏推送会注册失败。
+                </p>
+                <p className="text-[11px] text-[#a85c4a] leading-relaxed mt-0.5">
+                  ✅ 国内唯一可用：请下载「火狐 Firefox」浏览器（使用 Mozilla 自有推送服务，国内可正常用）
+                </p>
               </div>
               <div className="flex items-center gap-2 text-[12px] text-ink">
                 <span className="h-5 w-5 grid place-items-center rounded bg-[#FF7139]/10 text-[#FF7139] text-[10px] font-bold">F</span>
                 <span className="font-medium">Firefox（火狐浏览器）</span>
-                <span className="text-muted text-[11px]">备选</span>
+                <span className="text-[#4a7a68] text-[11px] font-medium">⭐ 国内唯一可用</span>
               </div>
               <p className="text-[11px] text-muted leading-relaxed pl-7">
-                华为/小米/OPPO/vivo应用商店搜索「狐猴浏览器」或「Chrome」即可下载。安装后建议：设置 → 电池 → 应用启动管理 → 允许后台活动。
+                华为/小米/OPPO/vivo 应用商店直接搜索「火狐浏览器」或「Firefox」下载安装。
               </p>
-              <p className="text-[11px] text-[#a85c4a] leading-relaxed pl-7">
-                ⚠️ 用 Edge 浏览器的用户：Edge 默认开启「安静通知请求」会屏蔽弹窗，需要手动关闭：⋮ → 设置 → 网站权限 → 通知 → 关闭「安静通知请求」
-              </p>
+              <div className="flex items-center gap-2 text-[12px] text-ink opacity-60">
+                <span className="h-5 w-5 grid place-items-center rounded bg-[#4285F4]/10 text-[#4285F4] text-[10px] font-bold">C</span>
+                <span className="font-medium">Chrome / Edge / 狐猴等</span>
+                <span className="text-[#a85c4a] text-[11px]">国内不可用（FCM被墙）</span>
+              </div>
             </div>
           ) : (
             <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-[12px] text-ink">
-                <span className="h-5 w-5 grid place-items-center rounded bg-[#6B46C1]/10 text-[#6B46C1] text-[10px] font-bold">狐</span>
-                <span className="font-medium">狐猴浏览器（Lemur）</span>
-                <span className="text-muted text-[11px]">⭐ 国内首选，应用商店可下</span>
-              </div>
-              <div className="flex items-center gap-2 text-[12px] text-ink">
-                <span className="h-5 w-5 grid place-items-center rounded bg-[#4285F4]/10 text-[#4285F4] text-[10px] font-bold">C</span>
-                <span className="font-medium">Chrome（谷歌浏览器）</span>
-                <span className="text-muted text-[11px]">最稳定</span>
-              </div>
-              <div className="flex items-center gap-2 text-[12px] text-ink">
-                <span className="h-5 w-5 grid place-items-center rounded bg-[#1458A9]/10 text-[#1458A9] text-[10px] font-bold">S</span>
-                <span className="font-medium">三星浏览器</span>
-                <span className="text-muted text-[11px]">三星手机自带</span>
+              <div className="bg-[#a85c4a]/10 border border-[#a85c4a]/20 rounded p-2 mb-1">
+                <p className="text-[11px] text-[#a85c4a] leading-relaxed font-medium">
+                  ⚠️ 国内用户重要提示：Chrome/Edge/狐猴/三星浏览器等 Chromium 内核浏览器依赖 Google FCM 推送服务，国内网络无法连接，息屏推送会注册失败。
+                </p>
+                <p className="text-[11px] text-[#a85c4a] leading-relaxed mt-0.5">
+                  ✅ 国内唯一可用：请下载「火狐 Firefox」浏览器（使用 Mozilla 自有推送服务，国内可正常用）
+                </p>
               </div>
               <div className="flex items-center gap-2 text-[12px] text-ink">
                 <span className="h-5 w-5 grid place-items-center rounded bg-[#FF7139]/10 text-[#FF7139] text-[10px] font-bold">F</span>
                 <span className="font-medium">Firefox（火狐浏览器）</span>
-                <span className="text-muted text-[11px]">备选</span>
+                <span className="text-[#4a7a68] text-[11px] font-medium">⭐ 国内唯一可用</span>
               </div>
               <p className="text-[11px] text-muted leading-relaxed pl-7">
-                国内应用商店（小米/OPPO/vivo/应用宝）搜索「狐猴浏览器」「Chrome」「Firefox」即可下载。安装后建议关闭电池优化。
+                小米/OPPO/vivo/应用宝/华为应用市场直接搜索「火狐浏览器」或「Firefox」下载安装。安装后建议：手机设置 → 应用 → Firefox → 电池 → 允许后台活动。
               </p>
-              <p className="text-[11px] text-[#a85c4a] leading-relaxed pl-7">
-                ⚠️ 用 Edge 浏览器的用户：Edge 默认开启「安静通知请求」会屏蔽弹窗，需要手动关闭：⋮ → 设置 → 网站权限 → 通知 → 关闭「安静通知请求」
-              </p>
-              <p className="text-[11px] text-[#a85c4a] leading-relaxed pl-7">
-                ⚠️ 微信/QQ/UC/夸克内置浏览器不支持推送，请复制链接到系统浏览器打开。
+              <div className="flex items-center gap-2 text-[12px] text-ink opacity-60">
+                <span className="h-5 w-5 grid place-items-center rounded bg-[#4285F4]/10 text-[#4285F4] text-[10px] font-bold">C</span>
+                <span className="font-medium">Chrome / Edge / 狐猴 / 三星浏览器</span>
+                <span className="text-[#a85c4a] text-[11px]">国内不可用（FCM被墙）</span>
+              </div>
+              <p className="text-[11px] text-[#a85c4a] leading-relaxed pl-7 pt-1">
+                ⚠️ 微信/QQ/UC/夸克内置浏览器不支持推送，请复制链接到 Firefox 打开。
               </p>
             </div>
           )}
