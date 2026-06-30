@@ -230,94 +230,17 @@ export function NotifyDrawer() {
               通知权限被拒绝，需手动开启：
             </p>
             {pwa.isIOS ? (
-              <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
-                <p>📱 iPhone/iPad（重要：必须添加到主屏幕）：</p>
-                {pwa.installed ? (
-                  <div className="space-y-1.5">
-                    <p className="text-[#a85c4a]">如果已添加到主屏幕但被拒绝：</p>
-                    <ol className="pl-4 space-y-0.5 list-decimal">
-                      <li>长按桌面本 App 图标 → 移除 App → 从主屏幕删除</li>
-                      <li>重新用 Safari 打开本网站</li>
-                      <li>点底部分享按钮 →「添加到主屏幕」→ 添加</li>
-                      <li>从桌面图标打开，会重新弹出权限请求，点「允许」</li>
-                    </ol>
-                    <p className="pt-1">系统设置检查：设置 → 通知 → 找到本 App → 打开「允许通知」</p>
-                  </div>
-                ) : (
-                  <ol className="pl-4 space-y-0.5 list-decimal">
-                    <li>先按下方指引「添加到主屏幕」</li>
-                    <li><strong>关掉 Safari 浏览器</strong>，从桌面图标打开</li>
-                    <li>打开后会自动弹出权限请求，点「允许」</li>
-                  </ol>
-                )}
-                <p className="pt-1 text-[#a85c4a]">⚠️ iPhone 上 Safari 直接打开网页无法收到推送，必须添加到主屏幕从图标启动！</p>
-              </div>
-            ) : pwa.isAndroid ? (
-              <div className="text-[11px] text-muted leading-relaxed space-y-1.5 pl-1">
-                {pwa.isEdge ? (
-                  <p className="text-[#a85c4a] font-medium">⚠️ 检测到你在用 Edge 浏览器：Edge 默认开启「安静通知请求」会自动屏蔽权限弹窗，请先按下方步骤关闭：</p>
-                ) : null}
-                <p>📱 安卓通知权限恢复步骤：</p>
-                {pwa.isEdge ? (
-                  <div className="bg-peach-soft/50 rounded p-2 border border-peach/30">
-                    <p className="font-medium text-[#a85c4a]">第一步：关闭 Edge 安静通知（必须做）</p>
-                    <ol className="pl-4 space-y-0.5 list-decimal text-[#a85c4a]">
-                      <li>点浏览器右下角或右上角 ⋯ 菜单</li>
-                      <li>点「设置」→「网站权限」→「通知」</li>
-                      <li>找到「安静通知请求」，把它关掉</li>
-                      <li>确保顶部「网站可以请求发送通知」是开启的</li>
-                    </ol>
-                  </div>
-                ) : null}
-                <p className="font-medium text-ink">方法一（最简单，当前页面直接设置）：</p>
-                <ol className="pl-4 space-y-0.5 list-decimal">
-                  <li>点地址栏 <strong>左侧</strong> 的 🔒 锁图标 或 ⓘ 信息图标</li>
-                  <li>在弹出面板中点「网站设置」</li>
-                  <li>找到「通知」，把右侧开关打开（变蓝色）</li>
-                  <li>返回网页，点刷新</li>
-                </ol>
-                <p className="font-medium text-ink pt-1">方法二（如果方法一找不到）：</p>
-                <ol className="pl-4 space-y-0.5 list-decimal">
-                  <li>点浏览器 ⋮ 菜单 →「设置」→「网站设置」→「通知」</li>
-                  <li>顶部确认「网站可以请求发送通知」已开</li>
-                  <li>在下方「不允许」列表找到本网站，点进去</li>
-                  <li>把「通知」开关打开，返回网页刷新</li>
-                </ol>
-                <p className="pt-1 text-[#a85c4a]">⚠️ 还需检查系统权限：手机设置 → 应用 → 你的浏览器（Chrome/Edge/狐猴/Firefox）→ 通知 → 打开「允许通知」</p>
-                <p className="pt-1 text-[#a85c4a]">💡 如果还是不弹权限请求：关闭悬浮球/护眼模式/录屏等悬浮窗应用后重试（安卓安全机制会拦截叠加层上的权限弹窗）</p>
-              </div>
-            ) : pwa.isHarmonyOS ? (
-              <div className="text-[11px] text-muted leading-relaxed space-y-1.5 pl-1">
-                {pwa.isEdge ? (
-                  <p className="text-[#a85c4a] font-medium">⚠️ 检测到你在用 Edge 浏览器：请先关闭「安静通知请求」（见下方说明）</p>
-                ) : null}
-                <p>📱 鸿蒙通知权限恢复步骤：</p>
-                <p className="font-medium text-ink">第一步：先检查系统权限</p>
-                <ol className="pl-4 space-y-0.5 list-decimal">
-                  <li>打开手机 <strong>设置</strong> →「通知和状态栏」→「通知管理」</li>
-                  <li>找到你用的浏览器（华为浏览器/Chrome/Edge/狐猴），打开「允许通知」</li>
-                </ol>
-                <p className="font-medium text-ink pt-1">第二步：设置浏览器内权限</p>
-                <ol className="pl-4 space-y-0.5 list-decimal">
-                  <li>点浏览器菜单（华为浏览器是右下角「我的」或右上角 ∷）→「设置」</li>
-                  <li>点「网站设置」→「通知」</li>
-                  <li>顶部「网站可以发送通知」开关打开</li>
-                  {pwa.isEdge ? (
-                    <li className="text-[#a85c4a]">找到「安静通知请求」，关闭它</li>
-                  ) : null}
-                  <li>在「不允许」列表找到本网站，点进去改为允许</li>
-                  <li>返回网页刷新</li>
-                </ol>
-              </div>
+              <IosPermissionGuide installed={pwa.installed} />
+            ) : pwa.isAndroid || pwa.isHarmonyOS ? (
+              <AndroidPermissionGuide isEdge={pwa.isEdge} />
             ) : (
               <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
-                <p>💻 电脑端（Chrome/Edge/Safari）：</p>
+                <p>💻 电脑端：</p>
                 <ol className="pl-4 space-y-0.5 list-decimal">
                   <li>点地址栏 <strong>左侧</strong> 的 🔒 锁图标</li>
                   <li>找到「通知」下拉选项，改为「允许」</li>
                   <li>刷新页面即可</li>
                 </ol>
-                <p className="pt-1">如果找不到：浏览器设置 → 隐私和安全 → 网站设置 → 通知 → 在「不允许」列表找到本网站改为允许</p>
               </div>
             )}
           </div>
@@ -476,13 +399,19 @@ export function NotifyDrawer() {
           ) : null}
         </div>
 
-        {/* 已安装 */}
         {pwa.installed ? (
           <p className="text-[12px] text-muted leading-relaxed">
             当前正以独立 App 模式运行，息屏后通知能稳定送达系统通知栏。
           </p>
+        ) : (pwa.isAndroid || pwa.isHarmonyOS) ? (
+          <p className="text-[12px] text-muted leading-relaxed">
+            请在上方点击绿色按钮下载安卓 App 安装包，安装后通知更稳定。
+          </p>
+        ) : pwa.isIOS ? (
+          <p className="text-[12px] text-muted leading-relaxed">
+            请按上方步骤添加到主屏幕，添加后从桌面图标打开即可。
+          </p>
         ) : pwa.canPrompt ? (
-          /* Android Chrome / 桌面 Chromium：一键安装 */
           <div>
             <p className="text-[12px] text-muted leading-relaxed mb-3">
               一键安装到桌面，获得独立窗口、桌面图标，息屏后通知更稳定。
@@ -498,49 +427,10 @@ export function NotifyDrawer() {
               {pwa.installing ? "安装中…" : "一键安装 App"}
             </Button>
           </div>
-        ) : pwa.isIOS ? (
-          /* iOS：手动分步引导 */
-          <div>
-            <p className="text-[12px] text-muted leading-relaxed mb-3">
-              iPhone 需手动添加到主屏幕，之后从桌面图标打开才能收到推送。
-            </p>
-            <ol className="space-y-2 text-[12px] text-ink leading-relaxed">
-              <li className="flex gap-2">
-                <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-mint-soft text-[#4a7a68] text-[11px] font-semibold">1</span>
-                <span className="flex items-center gap-1">
-                  点击 Safari 底部的
-                  <Share size={13} className="inline text-[#4a7a68]" />
-                  分享按钮
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-mint-soft text-[#4a7a68] text-[11px] font-semibold">2</span>
-                <span>滑动列表，选择「添加到主屏幕」</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-mint-soft text-[#4a7a68] text-[11px] font-semibold">3</span>
-                <span>点右上角「添加」，返回桌面</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-mint-soft text-[#4a7a68] text-[11px] font-semibold">4</span>
-                <span>
-                  <strong className="text-[#4a7a68]">关掉 Safari</strong>，
-                  从桌面图标打开，再回来开启上方通知
-                </span>
-              </li>
-            </ol>
-          </div>
         ) : (
-          /* 桌面 Firefox / 其他浏览器：通用引导 */
-          <div>
-            <p className="text-[12px] text-muted leading-relaxed mb-2">
-              安装后可获得独立窗口、桌面图标，息屏后通知也能在系统通知栏弹出。
-            </p>
-            <ul className="text-[11px] text-muted leading-relaxed list-disc pl-4 space-y-0.5">
-              <li>Chrome/Edge：地址栏右侧安装图标</li>
-              <li>Firefox：菜单 → 安装此站点为应用</li>
-            </ul>
-          </div>
+          <p className="text-[12px] text-muted leading-relaxed">
+            Chrome/Edge：点地址栏右侧安装图标；Firefox：菜单 → 安装此站点为应用。
+          </p>
         )}
       </section>
     </Drawer>
@@ -561,39 +451,32 @@ function BrowserSupportBanner({
     setSupport(pwa.checkBrowserSupport());
   }, [pwa]);
 
-  // 已安装的 PWA 不显示提示
   if (pwa.installed) return null;
 
-  // ── 不支持的浏览器：红色警告 ──
   if (support !== "supported") {
     const config: Record<
       string,
-      { title: string; body: string; action: string }
+      { title: string; action: string }
     > = {
       wechat: {
-        title: "微信内不支持推送",
-        body: "微信内置浏览器屏蔽了推送功能，无法收到息屏通知。",
-        action: "点右上角 ⋯ → 在浏览器中打开，用系统浏览器继续。",
+        title: "微信内不支持通知",
+        action: "点右上角 ⋯ → 在浏览器中打开",
       },
       qq: {
-        title: "QQ 浏览器内不支持推送",
-        body: "QQ 浏览器屏蔽了推送 API，无法收到息屏通知。",
-        action: "请复制链接到 Chrome / Edge / Safari 中打开。",
+        title: "QQ 浏览器内不支持通知",
+        action: "请复制链接到系统浏览器中打开",
       },
       "ios-non-safari": {
-        title: "iPhone 需用 Safari",
-        body: "iOS 上 Chrome / Edge / Firefox 都不支持推送，只有 Safari 支持。",
-        action: "请复制链接到 Safari 打开，并「添加到主屏幕」后从图标启动。",
+        title: "iPhone 需用 Safari 浏览器",
+        action: "请复制链接到 Safari 打开",
       },
       "old-ios": {
         title: "iOS 版本过低",
-        body: "iOS 16.4 以上才支持息屏推送通知。",
-        action: "请到 设置 → 通用 → 软件更新 升级 iOS 后再试。",
+        action: "iOS 16.4 以上才支持推送，请升级系统",
       },
       unknown: {
-        title: "浏览器兼容性未知",
-        body: "无法确认当前浏览器是否支持息屏推送。",
-        action: "推荐使用 Chrome / Edge / Safari 打开本网站。",
+        title: "当前浏览器兼容性未知",
+        action: "推荐使用系统浏览器打开",
       },
     };
 
@@ -604,7 +487,6 @@ function BrowserSupportBanner({
         <AlertTriangle size={14} className="text-[#a85c4a] mt-0.5 flex-shrink-0" />
         <div className="text-[12px] leading-relaxed">
           <div className="font-medium text-[#a85c4a]">{c.title}</div>
-          <div className="text-[#7a4a3d] mt-0.5">{c.body}</div>
           <div className="text-[#a85c4a] mt-1 flex items-start gap-1">
             <ArrowRight size={11} className="mt-0.5 flex-shrink-0" />
             <span>{c.action}</span>
@@ -614,106 +496,99 @@ function BrowserSupportBanner({
     );
   }
 
-  // ── 浏览器支持：绿色提示 + 手机端推荐浏览器 ──
   return (
     <div className="biz-card rounded-lg p-3 mb-4 bg-mint-soft/40 border-mint/30">
-      <div className="flex items-start gap-2">
-        <CheckCircle2 size={14} className="text-[#4a7a68] mt-0.5 flex-shrink-0" />
-        <div className="text-[12px] text-[#3d5a4f] leading-relaxed flex-1">
-          <span className="font-medium">当前浏览器支持息屏推送</span>
-          <span className="text-muted ml-1">·</span>
-          <span className="text-muted ml-1">
-            建议安装为 App，息屏后通知更稳定
-          </span>
-        </div>
-      </div>
-
-      {/* 手机端才显示浏览器推荐 */}
-      {pwa.isMobile ? (
-        <div className="mt-3 pt-3 border-t border-mint/20">
-          {/* 安卓 APK 下载入口 */}
-          {(pwa.isAndroid || pwa.isHarmonyOS) && !pwa.isEdge ? (
-            <a
-              href="/office-todo.apk"
-              download="待办清单.apk"
-              className="flex items-center gap-2 p-2.5 mb-2 rounded-lg bg-[#4a7a68] text-white hover:bg-[#3d6657] transition-colors"
-            >
-              <Smartphone size={16} className="flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="text-[12px] font-medium">📥 下载安卓 APK 安装包</div>
-                <div className="text-[10px] text-white/80">安装后通知更稳定，无需折腾浏览器（推荐）</div>
-              </div>
-              <Download size={14} className="flex-shrink-0" />
-            </a>
-          ) : null}
-          <div className="text-[11px] font-medium text-[#4a7a68] mb-2">
-            📱 {pwa.isAndroid || pwa.isHarmonyOS ? "如果不装App，推荐浏览器" : "推荐浏览器"}（息屏推送最稳定）
+      {/* 安卓/鸿蒙：优先推 APK */}
+      {(pwa.isAndroid || pwa.isHarmonyOS) ? (
+        <a
+          href="/office-todo.apk"
+          download="待办清单.apk"
+          className="flex items-center gap-3 p-3 rounded-lg bg-[#4a7a68] text-white hover:bg-[#3d6657] transition-colors"
+        >
+          <Smartphone size={20} className="flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <div className="text-[13px] font-medium">📥 下载安卓 App（推荐）</div>
+            <div className="text-[11px] text-white/80">安装后息屏通知更稳定，无需折腾浏览器</div>
           </div>
-          {pwa.isIOS ? (
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-[12px] text-ink">
-                <span className="h-5 w-5 grid place-items-center rounded bg-[#007AFF]/10 text-[#007AFF] text-[10px] font-bold">S</span>
-                <span className="font-medium">Safari</span>
-                <span className="text-muted text-[11px]">（系统自带，iPhone 唯一选择）</span>
-              </div>
-              <p className="text-[11px] text-muted leading-relaxed pl-7">
-                必须用 Safari 打开 → 添加到主屏幕 → 从桌面图标启动，才能收到息屏推送。
-              </p>
+          <Download size={16} className="flex-shrink-0" />
+        </a>
+      ) : pwa.isIOS ? (
+        /* iOS：Safari 添加到主屏幕指引 */
+        <div>
+          <div className="flex items-start gap-2 mb-2">
+            <CheckCircle2 size={14} className="text-[#4a7a68] mt-0.5 flex-shrink-0" />
+            <div className="text-[12px] text-[#3d5a4f] leading-relaxed">
+              <span className="font-medium">iPhone 请添加到主屏幕</span>
+              <span className="text-muted">，添加后才能收到息屏通知</span>
             </div>
-          ) : pwa.isHarmonyOS ? (
-            <div className="space-y-1.5">
-              <div className="bg-[#a85c4a]/10 border border-[#a85c4a]/20 rounded p-2 mb-1">
-                <p className="text-[11px] text-[#a85c4a] leading-relaxed font-medium">
-                  ⚠️ 国内用户重要提示：Chrome/Edge/狐猴等 Chromium 内核浏览器依赖 Google FCM 推送服务，国内网络无法连接，息屏推送会注册失败。
-                </p>
-                <p className="text-[11px] text-[#a85c4a] leading-relaxed mt-0.5">
-                  ✅ 国内唯一可用：请下载「火狐 Firefox」浏览器（使用 Mozilla 自有推送服务，国内可正常用）
-                </p>
-              </div>
-              <div className="flex items-center gap-2 text-[12px] text-ink">
-                <span className="h-5 w-5 grid place-items-center rounded bg-[#FF7139]/10 text-[#FF7139] text-[10px] font-bold">F</span>
-                <span className="font-medium">Firefox（火狐浏览器）</span>
-                <span className="text-[#4a7a68] text-[11px] font-medium">⭐ 国内唯一可用</span>
-              </div>
-              <p className="text-[11px] text-muted leading-relaxed pl-7">
-                华为/小米/OPPO/vivo 应用商店直接搜索「火狐浏览器」或「Firefox」下载安装。
-              </p>
-              <div className="flex items-center gap-2 text-[12px] text-ink opacity-60">
-                <span className="h-5 w-5 grid place-items-center rounded bg-[#4285F4]/10 text-[#4285F4] text-[10px] font-bold">C</span>
-                <span className="font-medium">Chrome / Edge / 狐猴等</span>
-                <span className="text-[#a85c4a] text-[11px]">国内不可用（FCM被墙）</span>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-1.5">
-              <div className="bg-[#a85c4a]/10 border border-[#a85c4a]/20 rounded p-2 mb-1">
-                <p className="text-[11px] text-[#a85c4a] leading-relaxed font-medium">
-                  ⚠️ 国内用户重要提示：Chrome/Edge/狐猴/三星浏览器等 Chromium 内核浏览器依赖 Google FCM 推送服务，国内网络无法连接，息屏推送会注册失败。
-                </p>
-                <p className="text-[11px] text-[#a85c4a] leading-relaxed mt-0.5">
-                  ✅ 国内唯一可用：请下载「火狐 Firefox」浏览器（使用 Mozilla 自有推送服务，国内可正常用）
-                </p>
-              </div>
-              <div className="flex items-center gap-2 text-[12px] text-ink">
-                <span className="h-5 w-5 grid place-items-center rounded bg-[#FF7139]/10 text-[#FF7139] text-[10px] font-bold">F</span>
-                <span className="font-medium">Firefox（火狐浏览器）</span>
-                <span className="text-[#4a7a68] text-[11px] font-medium">⭐ 国内唯一可用</span>
-              </div>
-              <p className="text-[11px] text-muted leading-relaxed pl-7">
-                小米/OPPO/vivo/应用宝/华为应用市场直接搜索「火狐浏览器」或「Firefox」下载安装。安装后建议：手机设置 → 应用 → Firefox → 电池 → 允许后台活动。
-              </p>
-              <div className="flex items-center gap-2 text-[12px] text-ink opacity-60">
-                <span className="h-5 w-5 grid place-items-center rounded bg-[#4285F4]/10 text-[#4285F4] text-[10px] font-bold">C</span>
-                <span className="font-medium">Chrome / Edge / 狐猴 / 三星浏览器</span>
-                <span className="text-[#a85c4a] text-[11px]">国内不可用（FCM被墙）</span>
-              </div>
-              <p className="text-[11px] text-[#a85c4a] leading-relaxed pl-7 pt-1">
-                ⚠️ 微信/QQ/UC/夸克内置浏览器不支持推送，请复制链接到 Firefox 打开。
-              </p>
-            </div>
-          )}
+          </div>
+          <ol className="space-y-1.5 text-[11px] text-ink leading-relaxed pl-1">
+            <li className="flex gap-2">
+              <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-[#007AFF]/15 text-[#007AFF] text-[10px] font-semibold">1</span>
+              <span className="flex items-center gap-1">
+                点击 Safari 底部的
+                <Share size={12} className="inline text-[#007AFF]" />
+                分享按钮
+              </span>
+            </li>
+            <li className="flex gap-2">
+              <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-[#007AFF]/15 text-[#007AFF] text-[10px] font-semibold">2</span>
+              <span>上滑找到「添加到主屏幕」，点右上角「添加」</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-[#007AFF]/15 text-[#007AFF] text-[10px] font-semibold">3</span>
+              <span><strong className="text-[#4a7a68]">关掉 Safari</strong>，从桌面图标打开，再回来开启通知</span>
+            </li>
+          </ol>
         </div>
+      ) : (
+        <div className="flex items-start gap-2">
+          <CheckCircle2 size={14} className="text-[#4a7a68] mt-0.5 flex-shrink-0" />
+          <div className="text-[12px] text-[#3d5a4f] leading-relaxed flex-1">
+            <span className="font-medium">当前浏览器支持通知</span>
+            <span className="text-muted ml-1">·开启通知即可在息屏后收到消息提醒</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function IosPermissionGuide({ installed }: { installed: boolean }) {
+  if (installed) {
+    return (
+      <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
+        <p>📱 请按以下步骤恢复：</p>
+        <ol className="pl-4 space-y-0.5 list-decimal">
+          <li>长按桌面本 App 图标 → 移除 App → 从主屏幕删除</li>
+          <li>用 Safari 重新打开本网站</li>
+          <li>点底部分享 <Share size={10} className="inline" /> →「添加到主屏幕」→ 添加</li>
+          <li>从桌面图标打开，会弹出权限请求，点「允许」</li>
+        </ol>
+        <p className="pt-1">或检查：设置 → 通知 → 找到本 App → 打开「允许通知」</p>
+      </div>
+    );
+  }
+  return (
+    <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
+      <p>📱 请先按上方指引「添加到主屏幕」，然后：</p>
+      <ol className="pl-4 space-y-0.5 list-decimal">
+        <li><strong>关掉 Safari</strong>，从桌面图标打开本 App</li>
+        <li>打开后会自动弹出权限请求，点「允许」</li>
+      </ol>
+      <p className="text-[#a85c4a] pt-1">⚠️ 必须从桌面图标启动，Safari 直接打开网页无法收到推送</p>
+    </div>
+  );
+}
+
+function AndroidPermissionGuide({ isEdge }: { isEdge: boolean }) {
+  return (
+    <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
+      <p className="text-[#4a7a68] font-medium">💡 推荐直接下载上方安卓 App，安装后通知不受浏览器限制</p>
+      {isEdge ? (
+        <p className="text-[#a85c4a]">Edge 用户：先在 ⋮ → 设置 → 网站权限 → 通知，关闭「安静通知请求」</p>
       ) : null}
+      <p>继续用浏览器的话：点浏览器 ⋮ → 设置 → 网站设置 → 通知，在「不允许」列表找到本网站改为允许。</p>
     </div>
   );
 }
