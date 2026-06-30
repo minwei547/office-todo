@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import {
+  AlertTriangle,
+  ArrowRight,
   Bell,
   BellRing,
   Check,
+  CheckCircle2,
   Download,
   MoonStar,
   Share,
@@ -138,6 +141,9 @@ export function NotifyDrawer() {
       subtitle="息屏后仍可在系统通知栏收到提醒"
       widthClass="w-[420px] max-w-[92vw]"
     >
+      {/* 浏览器兼容性提示 */}
+      <BrowserSupportBanner pwa={pwa} />
+
       {!supported ? (
         <div className="biz-card rounded-lg p-4 mb-4 bg-peach-soft border-peach">
           <p className="text-[13px] text-[#a85c4a] leading-relaxed">
@@ -237,11 +243,15 @@ export function NotifyDrawer() {
         ) : null}
         {pushStatus === "no-vapid" ? (
           <p className="mt-3 text-[11px] text-muted leading-relaxed">
-            服务器尚未配置 VAPID 推送密钥。请管理员运行
+            前端尚未配置 VAPID 公钥。请管理员在部署平台配置环境变量
             <code className="mx-1 px-1 bg-bg-soft rounded text-[10px]">
-              node scripts/gen-vapid.mjs
+              VITE_VAPID_PUBLIC_KEY
             </code>
-            并配置到 Supabase secrets。
+            后重新部署（本地开发写入
+            <code className="mx-1 px-1 bg-bg-soft rounded text-[10px]">
+              .env.local
+            </code>
+            即可）。
           </p>
         ) : null}
         {pushStatus === "no-support" ? (
@@ -402,6 +412,88 @@ export function NotifyDrawer() {
         )}
       </section>
     </Drawer>
+  );
+}
+
+/** 浏览器兼容性提示横幅 */
+function BrowserSupportBanner({
+  pwa,
+}: {
+  pwa: ReturnType<typeof usePwaInstall>;
+}) {
+  const [support, setSupport] = useState<
+    "supported" | "wechat" | "qq" | "ios-non-safari" | "old-ios" | "unknown"
+  >("supported");
+
+  useEffect(() => {
+    setSupport(pwa.checkBrowserSupport());
+  }, [pwa]);
+
+  // 已安装的 PWA 不显示提示
+  if (pwa.installed) return null;
+
+  if (support === "supported") {
+    // 浏览器支持，显示绿色提示
+    return (
+      <div className="biz-card rounded-lg p-3 mb-4 bg-mint-soft/40 border-mint/30 flex items-start gap-2">
+        <CheckCircle2 size={14} className="text-[#4a7a68] mt-0.5 flex-shrink-0" />
+        <div className="text-[12px] text-[#3d5a4f] leading-relaxed">
+          <span className="font-medium">当前浏览器支持息屏推送</span>
+          <span className="text-muted ml-1">·</span>
+          <span className="text-muted ml-1">
+            建议安装为 App，息屏后通知更稳定
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // 不支持的浏览器，显示警告 + 替代方案
+  const config: Record<
+    string,
+    { title: string; body: string; action: string }
+  > = {
+    wechat: {
+      title: "微信内不支持推送",
+      body: "微信内置浏览器屏蔽了 Service Worker 和推送 API，无法收到息屏通知。",
+      action: "点右上角 ⋯ → 在浏览器中打开，用系统浏览器继续。",
+    },
+    qq: {
+      title: "QQ 浏览器内不支持推送",
+      body: "QQ 浏览器屏蔽了推送 API，无法收到息屏通知。",
+      action: "请复制链接到 Chrome / Edge / Safari 中打开。",
+    },
+    "ios-non-safari": {
+      title: "iPhone 需用 Safari",
+      body: "iOS 上 Chrome / Edge / Firefox 都不支持 Web Push，只有 Safari 支持。",
+      action: "请复制链接到 Safari 打开，并「添加到主屏幕」后从图标启动。",
+    },
+    "old-ios": {
+      title: "iOS 版本过低",
+      body: "iOS 16.4 以上才支持 Web Push 通知。",
+      action: "请到 设置 → 通用 → 软件更新 升级 iOS 后再试。",
+    },
+    unknown: {
+      title: "浏览器兼容性未知",
+      body: "无法确认当前浏览器是否支持息屏推送。",
+      action: "推荐使用 Chrome / Edge / Safari 打开本网站。",
+    },
+  };
+
+  const c = config[support] || config.unknown;
+
+  return (
+    <div className="biz-card rounded-lg p-3 mb-4 bg-peach-soft border-peach flex items-start gap-2">
+      <AlertTriangle size={14} className="text-[#a85c4a] mt-0.5 flex-shrink-0" />
+      <div className="text-[12px] leading-relaxed">
+        <div className="font-medium text-[#a85c4a]">{c.title}</div>
+        <div className="text-[#7a4a3d] mt-0.5">{c.body}</div>
+        <div className="text-[#a85c4a] mt-1 flex items-start gap-1">
+          <ArrowRight size={11} className="mt-0.5 flex-shrink-0" />
+          <span>{c.action}</span>
+        </div>
+      </div>
+    </div>
   );
 }
 
