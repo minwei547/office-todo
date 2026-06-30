@@ -17,7 +17,7 @@ import { supabase } from "./supabase";
 import { getUserId } from "./api";
 
 const VAPID_PUBLIC_KEY =
-  import.meta.env.VITE_VAPID_PUBLIC_KEY || "";
+  "BEvHHBAF9B9mqTgDWf9L2ia3SEq0O0_PHboKD-hw9S3SLaS0oc9ESqLSfcVnP0uTzO8_PIsCCpPvyqnCEV-0GEM";
 
 /** Web Push 是否受当前环境支持 */
 export function pushSupported(): boolean {
