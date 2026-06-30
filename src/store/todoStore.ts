@@ -231,18 +231,28 @@ export const useTodoStore = create<TodoState>((set, get) => ({
 
   // 认证
   register: async (username, password, nickname) => {
-    const result = await api.register(username, password, nickname);
-    setUserId(result.userId);
-    useSessionStore.setState({ userId: result.userId, lastTeamId: null });
-    set({ user: result, myTeams: [] });
+    set({ authLoading: true });
+    try {
+      const result = await api.register(username, password, nickname);
+      setUserId(result.userId);
+      useSessionStore.setState({ userId: result.userId, lastTeamId: null });
+      set({ user: result, myTeams: [] });
+    } finally {
+      set({ authLoading: false });
+    }
   },
 
   login: async (username, password) => {
-    const result = await api.login(username, password);
-    setUserId(result.userId);
-    useSessionStore.setState({ userId: result.userId });
-    set({ user: result });
-    await get().loadMyTeams();
+    set({ authLoading: true });
+    try {
+      const result = await api.login(username, password);
+      setUserId(result.userId);
+      useSessionStore.setState({ userId: result.userId });
+      set({ user: result });
+      await get().loadMyTeams();
+    } finally {
+      set({ authLoading: false });
+    }
   },
 
   logout: () => {
@@ -289,25 +299,37 @@ export const useTodoStore = create<TodoState>((set, get) => ({
   createTeam: async (teamName, nickname) => {
     const me = get().user;
     if (!me) throw new Error("请先登录");
-    const result = await api.createTeam(teamName, nickname, me.userId);
-    setMemberId(result.memberId);
-    useSessionStore.setState({ lastTeamId: result.teamId });
-    set({ currentMemberId: result.memberId, currentTeamId: result.teamId });
-    await get().refreshTeam(result.teamId);
-    socket.connect(result.teamId);
-    await get().loadMyTeams();
+    if (get().authLoading) throw new Error("正在登录，请稍候");
+    set({ authLoading: true });
+    try {
+      const result = await api.createTeam(teamName, nickname, me.userId);
+      setMemberId(result.memberId);
+      useSessionStore.setState({ lastTeamId: result.teamId });
+      set({ currentMemberId: result.memberId, currentTeamId: result.teamId });
+      await get().refreshTeam(result.teamId);
+      socket.connect(result.teamId);
+      await get().loadMyTeams();
+    } finally {
+      set({ authLoading: false });
+    }
   },
 
   joinTeam: async (inviteCode, nickname) => {
     const me = get().user;
     if (!me) throw new Error("请先登录");
-    const result = await api.joinTeam(inviteCode, nickname, me.userId);
-    setMemberId(result.memberId);
-    useSessionStore.setState({ lastTeamId: result.teamId });
-    set({ currentMemberId: result.memberId, currentTeamId: result.teamId });
-    await get().refreshTeam(result.teamId);
-    socket.connect(result.teamId);
-    await get().loadMyTeams();
+    if (get().authLoading) throw new Error("正在登录，请稍候");
+    set({ authLoading: true });
+    try {
+      const result = await api.joinTeam(inviteCode, nickname, me.userId);
+      setMemberId(result.memberId);
+      useSessionStore.setState({ lastTeamId: result.teamId });
+      set({ currentMemberId: result.memberId, currentTeamId: result.teamId });
+      await get().refreshTeam(result.teamId);
+      socket.connect(result.teamId);
+      await get().loadMyTeams();
+    } finally {
+      set({ authLoading: false });
+    }
   },
 
   renameTeam: async (teamId, name) => {

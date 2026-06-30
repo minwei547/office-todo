@@ -19,6 +19,7 @@ export default function Home() {
   const team = useTodoStore(selectCurrentTeam);
   const user = useTodoStore((s) => s.user);
   const loading = useTodoStore((s) => s.loading);
+  const authLoading = useTodoStore((s) => s.authLoading);
   const error = useTodoStore((s) => s.error);
   const initFromSession = useTodoStore((s) => s.initFromSession);
   const applyServerEvent = useTodoStore((s) => s.applyServerEvent);
@@ -63,6 +64,11 @@ export default function Home() {
       setAuthModal(true);
       setOnboarding(false);
       setTeamPicker(false);
+    } else if (authLoading) {
+      // 登录/注册/拉取团队期间，不弹任何团队选择窗口，避免重复创建身份
+      setAuthModal(false);
+      setTeamPicker(false);
+      setOnboarding(false);
     } else {
       setAuthModal(false);
       if (!team) {
@@ -73,9 +79,9 @@ export default function Home() {
         setOnboarding(false);
       }
     }
-  }, [user, team, setAuthModal, setOnboarding, setTeamPicker]);
+  }, [user, team, authLoading, setAuthModal, setOnboarding, setTeamPicker]);
 
-  if (loading && !team) {
+  if ((loading && !team) || (authLoading && user && !team)) {
     return (
       <div className="h-screen grid place-items-center">
         <div className="text-center">
@@ -83,7 +89,7 @@ export default function Home() {
             <div className="absolute inset-0 rounded-full bg-mint-gradient blur-md animate-pulse" />
             <div className="absolute inset-0 rounded-full border-2 border-line border-t-mint animate-spin" />
           </div>
-          <p className="mono-meta">正在连接团队…</p>
+          <p className="mono-meta">{authLoading ? "正在登录…" : "正在连接团队…"}</p>
         </div>
       </div>
     );
