@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { Bell, BellRing, MoonStar, Smartphone, Vibrate } from "lucide-react";
+import {
+  Bell,
+  BellRing,
+  Check,
+  Download,
+  MoonStar,
+  Share,
+  Smartphone,
+  Vibrate,
+} from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { Button } from "@/components/ui/Button";
 import { useUIStore } from "@/store/uiStore";
@@ -20,6 +29,7 @@ import {
   subscribePush,
   unsubscribePush,
 } from "@/lib/push";
+import { usePwaInstall } from "@/lib/usePwaInstall";
 
 type PushStatus =
   | "loading"
@@ -40,6 +50,7 @@ export function NotifyDrawer() {
   const [pushStatus, setPushStatus] = useState<PushStatus>("loading");
   const [pushBusy, setPushBusy] = useState(false);
   const [pushError, setPushError] = useState("");
+  const pwa = usePwaInstall();
 
   async function refreshPushStatus() {
     if (!pushSupported()) {
@@ -311,21 +322,84 @@ export function NotifyDrawer() {
         </Button>
       </section>
 
-      {/* PWA 安装提示 */}
+      {/* PWA 安装引导 */}
       <section className="biz-card rounded-lg p-4">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-3">
           <Smartphone size={14} className="text-[#4a7a68]" />
           <h4 className="text-[13px] font-medium text-ink">安装为 App</h4>
+          {pwa.installed ? (
+            <span className="ml-auto flex items-center gap-1 text-[11px] text-[#4a7a68]">
+              <Check size={12} /> 已安装
+            </span>
+          ) : null}
         </div>
-        <p className="text-[12px] text-muted leading-relaxed">
-          在浏览器地址栏或菜单中选择「安装此应用 / 添加到主屏幕」，
-          可获得独立窗口、桌面图标，息屏后通知也能在系统通知栏弹出。
-        </p>
-        <ul className="mt-2 text-[11px] text-muted leading-relaxed list-disc pl-4 space-y-0.5">
-          <li>桌面 Chrome/Edge：地址栏右侧安装图标</li>
-          <li>Android Chrome：菜单 → 添加到主屏幕</li>
-          <li>iOS Safari（16.4+）：分享 → 添加到主屏幕</li>
-        </ul>
+
+        {/* 已安装 */}
+        {pwa.installed ? (
+          <p className="text-[12px] text-muted leading-relaxed">
+            当前正以独立 App 模式运行，息屏后通知能稳定送达系统通知栏。
+          </p>
+        ) : pwa.canPrompt ? (
+          /* Android Chrome / 桌面 Chromium：一键安装 */
+          <div>
+            <p className="text-[12px] text-muted leading-relaxed mb-3">
+              一键安装到桌面，获得独立窗口、桌面图标，息屏后通知更稳定。
+            </p>
+            <Button
+              variant="primary"
+              size="md"
+              className="w-full"
+              onClick={() => pwa.promptInstall()}
+              disabled={pwa.installing}
+              trailingIcon={<Download size={14} />}
+            >
+              {pwa.installing ? "安装中…" : "一键安装 App"}
+            </Button>
+          </div>
+        ) : pwa.isIOS ? (
+          /* iOS：手动分步引导 */
+          <div>
+            <p className="text-[12px] text-muted leading-relaxed mb-3">
+              iPhone 需手动添加到主屏幕，之后从桌面图标打开才能收到推送。
+            </p>
+            <ol className="space-y-2 text-[12px] text-ink leading-relaxed">
+              <li className="flex gap-2">
+                <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-mint-soft text-[#4a7a68] text-[11px] font-semibold">1</span>
+                <span className="flex items-center gap-1">
+                  点击 Safari 底部的
+                  <Share size={13} className="inline text-[#4a7a68]" />
+                  分享按钮
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-mint-soft text-[#4a7a68] text-[11px] font-semibold">2</span>
+                <span>滑动列表，选择「添加到主屏幕」</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-mint-soft text-[#4a7a68] text-[11px] font-semibold">3</span>
+                <span>点右上角「添加」，返回桌面</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="flex-shrink-0 h-5 w-5 grid place-items-center rounded-full bg-mint-soft text-[#4a7a68] text-[11px] font-semibold">4</span>
+                <span>
+                  <strong className="text-[#4a7a68]">关掉 Safari</strong>，
+                  从桌面图标打开，再回来开启上方通知
+                </span>
+              </li>
+            </ol>
+          </div>
+        ) : (
+          /* 桌面 Firefox / 其他浏览器：通用引导 */
+          <div>
+            <p className="text-[12px] text-muted leading-relaxed mb-2">
+              安装后可获得独立窗口、桌面图标，息屏后通知也能在系统通知栏弹出。
+            </p>
+            <ul className="text-[11px] text-muted leading-relaxed list-disc pl-4 space-y-0.5">
+              <li>Chrome/Edge：地址栏右侧安装图标</li>
+              <li>Firefox：菜单 → 安装此站点为应用</li>
+            </ul>
+          </div>
+        )}
       </section>
     </Drawer>
   );
