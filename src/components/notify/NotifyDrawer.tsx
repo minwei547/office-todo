@@ -248,21 +248,27 @@ export function NotifyDrawer() {
             ) : pwa.isAndroid ? (
               <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
                 <p>📱 安卓（Chrome/Edge）：</p>
+                <p className="font-medium text-ink">方法一（推荐）：</p>
+                <ol className="pl-4 space-y-0.5 list-decimal">
+                  <li>点浏览器右上角 ⋮ 三个点菜单</li>
+                  <li>点「设置」→「网站设置」→「通知」</li>
+                  <li>找到本网站，改为「允许」，然后刷新</li>
+                </ol>
+                <p className="font-medium text-ink pt-1">方法二：</p>
                 <ol className="pl-4 space-y-0.5 list-decimal">
                   <li>点地址栏左边的 🔒 锁图标</li>
-                  <li>找到「通知」→ 改为「允许」</li>
-                  <li>刷新页面即可</li>
+                  <li>点「权限」或「网站设置」→「通知」→ 改为「允许」</li>
                 </ol>
-                <p className="pt-1 text-[#a85c4a]">如果还不行：系统设置 → 应用管理 → 浏览器 → 通知 → 允许</p>
+                <p className="pt-1 text-[#a85c4a]">如果还不行：手机设置 → 应用管理 → Chrome → 通知 → 全部允许</p>
               </div>
             ) : pwa.isHarmonyOS ? (
               <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
                 <p>📱 鸿蒙：</p>
                 <ol className="pl-4 space-y-0.5 list-decimal">
-                  <li>点地址栏左边的 🔒 锁图标 → 通知 → 允许</li>
-                  <li>如不行：设置 → 应用和服务 → 应用管理 → 浏览器</li>
-                  <li>通知管理 → 打开「允许通知」</li>
+                  <li>浏览器右上角 ⋮ → 设置 → 网站设置 → 通知</li>
+                  <li>找到本网站，改为「允许」，然后刷新</li>
                 </ol>
+                <p className="pt-1 text-[#a85c4a]">如不行：设置 → 应用和服务 → 应用管理 → 浏览器 → 通知管理 → 允许</p>
               </div>
             ) : (
               <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
