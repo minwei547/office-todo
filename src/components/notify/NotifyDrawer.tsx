@@ -54,6 +54,7 @@ export function NotifyDrawer() {
   const [pushBusy, setPushBusy] = useState(false);
   const [pushError, setPushError] = useState("");
   const pwa = usePwaInstall();
+  const [preNotify, setPreNotify] = useState(false);
 
   async function refreshPushStatus() {
     if (!pushSupported()) {
@@ -71,6 +72,7 @@ export function NotifyDrawer() {
   useEffect(() => {
     if (open) {
       setPermission(notificationPermission());
+      setPreNotify(false);
       refreshPushStatus();
     }
   }, [open]);
@@ -82,6 +84,12 @@ export function NotifyDrawer() {
   }
 
   async function handleEnable() {
+    // 如果还没显示过预提示，先显示，用户确认后再真正请求权限
+    if (!preNotify && permission === "default") {
+      setPreNotify(true);
+      return;
+    }
+    setPreNotify(false);
     const ok = await requestNotificationPermission();
     setPermission(notificationPermission());
     if (ok) {
@@ -153,6 +161,38 @@ export function NotifyDrawer() {
         </div>
       ) : null}
 
+      {/* 开启通知预提示 */}
+      {preNotify ? (
+        <div className="biz-card rounded-lg p-4 mb-4 bg-accent/10 border-accent/30">
+          <div className="flex items-start gap-2.5">
+            <BellRing size={16} className="text-[#4a7a68] mt-0.5 flex-shrink-0" />
+            <div className="text-[12px] leading-relaxed">
+              <div className="font-medium text-ink mb-1">即将弹出权限请求</div>
+              <div className="text-muted mb-3">
+                点击下方"好的，去开启"后，浏览器会弹出一个系统对话框，
+                请点<strong className="text-[#4a7a68]">「允许」</strong>才能收到通知。
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleEnable}
+                >
+                  好的，去开启
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setPreNotify(false)}
+                >
+                  取消
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {/* 权限状态 */}
       <section className="mb-5 biz-card rounded-lg p-4">
         <div className="flex items-center justify-between">
@@ -185,10 +225,56 @@ export function NotifyDrawer() {
           ) : null}
         </div>
         {supported && permission === "denied" ? (
-          <p className="mt-3 text-[11px] text-[#a85c4a] leading-relaxed">
-            权限被拒后无法在网页中再次申请。
-            请到浏览器地址栏左侧的🔒图标 → 通知 → 允许，重新开启。
-          </p>
+          <div className="mt-3">
+            <p className="text-[11px] text-[#a85c4a] leading-relaxed mb-2">
+              通知权限被拒绝，需手动开启：
+            </p>
+            {pwa.isIOS ? (
+              <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
+                <p>📱 iPhone/iPad：</p>
+                {pwa.installed ? (
+                  <ol className="pl-4 space-y-0.5 list-decimal">
+                    <li>打开系统 <strong>设置</strong></li>
+                    <li>找到本 App（办公协作待办清单）</li>
+                    <li>点 <strong>通知</strong> → 打开「允许通知」</li>
+                  </ol>
+                ) : (
+                  <ol className="pl-4 space-y-0.5 list-decimal">
+                    <li>先按下方指引「添加到主屏幕」</li>
+                    <li>从桌面图标打开后，再回来开启通知</li>
+                  </ol>
+                )}
+              </div>
+            ) : pwa.isAndroid ? (
+              <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
+                <p>📱 安卓（Chrome/Edge）：</p>
+                <ol className="pl-4 space-y-0.5 list-decimal">
+                  <li>点地址栏左边的 🔒 锁图标</li>
+                  <li>找到「通知」→ 改为「允许」</li>
+                  <li>刷新页面即可</li>
+                </ol>
+                <p className="pt-1 text-[#a85c4a]">如果还不行：系统设置 → 应用管理 → 浏览器 → 通知 → 允许</p>
+              </div>
+            ) : pwa.isHarmonyOS ? (
+              <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
+                <p>📱 鸿蒙：</p>
+                <ol className="pl-4 space-y-0.5 list-decimal">
+                  <li>点地址栏左边的 🔒 锁图标 → 通知 → 允许</li>
+                  <li>如不行：设置 → 应用和服务 → 应用管理 → 浏览器</li>
+                  <li>通知管理 → 打开「允许通知」</li>
+                </ol>
+              </div>
+            ) : (
+              <div className="text-[11px] text-muted leading-relaxed space-y-1 pl-1">
+                <p>💻 电脑端：</p>
+                <ol className="pl-4 space-y-0.5 list-decimal">
+                  <li>点地址栏左边的 🔒 锁图标</li>
+                  <li>找到「通知」→ 改为「允许」</li>
+                  <li>刷新页面即可</li>
+                </ol>
+              </div>
+            )}
+          </div>
         ) : null}
       </section>
 
