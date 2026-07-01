@@ -89,7 +89,7 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
             disabled={!canEdit}
             className={cn(
               "mt-0.5 shrink-0",
-              canEdit ? "text-muted hover:text-[#4a7a68]" : "text-dim cursor-not-allowed",
+              canEdit ? "text-gray-300 hover:text-[#4a7a68]" : "text-dim cursor-not-allowed",
             )}
             aria-label="切换状态"
           >
@@ -98,7 +98,7 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
             ) : isInProgress ? (
               <Loader2 size={16} className="text-[#4a7a68] animate-spin" />
             ) : (
-              <Circle size={16} />
+              <Circle size={16} className="text-gray-300" />
             )}
           </button>
           <div className="min-w-0 flex-1">
@@ -187,12 +187,12 @@ export function TaskCard({ task, index = 0, variant = "row" }: TaskCardProps) {
         disabled={!canEdit}
         aria-label={isDone ? "标记为待办" : "标记为完成"}
         className={cn(
-          "h-5 w-5 shrink-0 grid place-items-center rounded-full border transition-colors",
+          "h-5 w-5 shrink-0 grid place-items-center rounded-full border-2 transition-colors",
           isDone
             ? "bg-[#6fbf8e] border-success text-white"
             : canEdit
-              ? "border-white/[0.20] hover:border-mint hover:text-[#4a7a68]"
-              : "border-line text-dim cursor-not-allowed",
+              ? "border-gray-300 bg-white hover:border-[#4a7a68] hover:text-[#4a7a68]"
+              : "border-line bg-bg-soft text-dim cursor-not-allowed",
         )}
       >
         {isDone ? <Check size={12} /> : null}

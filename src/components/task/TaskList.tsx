@@ -74,47 +74,76 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
     setSelected(new Set(flat.map((n) => n.task.taskId)));
   }, [flat]);
 
-  // ── 层级调整操作 ──
-  const canIndent = (taskId: string): boolean => {
-    return getPrevSibling(allTasks, taskId) !== null;
-  };
-  const canOutdent = (taskId: string): boolean => {
-    return !!allTasks[taskId]?.parentId;
-  };
-  const canMoveUp = (taskId: string): boolean => {
-    return getPrevSibling(allTasks, taskId) !== null;
-  };
-  const canMoveDown = (taskId: string): boolean => {
-    return getNextSibling(allTasks, taskId) !== null;
-  };
+  // 判断选中项中是否有任意一项可执行该操作
+  const canAnyIndent = useMemo(
+    () => [...selected].some((id) => getPrevSibling(allTasks, id) !== null),
+    [selected, allTasks],
+  );
+  const canAnyOutdent = useMemo(
+    () => [...selected].some((id) => !!allTasks[id]?.parentId),
+    [selected, allTasks],
+  );
+  const canAnyMoveUp = canAnyIndent;
+  const canAnyMoveDown = useMemo(
+    () => [...selected].some((id) => getNextSibling(allTasks, id) !== null),
+    [selected, allTasks],
+  );
 
   // 对所有选中的任务执行操作
   const handleIndent = async () => {
     for (const id of selected) {
-      await indentTask(id);
+      try {
+        await indentTask(id);
+      } catch (e) {
+        console.warn("降级失败:", e);
+      }
     }
   };
   const handleOutdent = async () => {
     for (const id of selected) {
-      await outdentTask(id);
+      try {
+        await outdentTask(id);
+      } catch (e) {
+        console.warn("升级失败:", e);
+      }
     }
   };
   const handleMoveUp = async () => {
     for (const id of selected) {
       const prev = getPrevSibling(allTasks, id);
-      if (prev) await swapTaskOrder(id, prev.taskId);
+      if (prev) {
+        try {
+          await swapTaskOrder(id, prev.taskId);
+        } catch (e) {
+          console.warn("上移失败:", e);
+        }
+      }
     }
   };
   const handleMoveDown = async () => {
     for (const id of selected) {
       const next = getNextSibling(allTasks, id);
-      if (next) await swapTaskOrder(id, next.taskId);
+      if (next) {
+        try {
+          await swapTaskOrder(id, next.taskId);
+        } catch (e) {
+          console.warn("下移失败:", e);
+        }
+      }
     }
   };
 
   if (tasks.length === 0) return null;
 
   const selectedCount = selected.size;
+
+  const btnClass = (disabled: boolean) =>
+    cn(
+      "flex items-center gap-1 px-2 py-1 rounded transition-colors text-xs",
+      disabled
+        ? "bg-white/10 text-white/40 cursor-not-allowed"
+        : "bg-white/15 hover:bg-white/25 text-white",
+    );
 
   return (
     <div className="biz-card rounded-lg overflow-hidden">
@@ -124,7 +153,8 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
           <span className="text-xs font-medium mr-1">已选 {selectedCount} 项</span>
           <button
             onClick={handleMoveUp}
-            className="flex items-center gap-1 px-2 py-1 rounded bg-white/15 hover:bg-white/25 transition-colors text-xs"
+            disabled={!canAnyMoveUp}
+            className={btnClass(!canAnyMoveUp)}
             title="上移"
           >
             <ChevronUp size={14} />
@@ -132,7 +162,8 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
           </button>
           <button
             onClick={handleMoveDown}
-            className="flex items-center gap-1 px-2 py-1 rounded bg-white/15 hover:bg-white/25 transition-colors text-xs"
+            disabled={!canAnyMoveDown}
+            className={btnClass(!canAnyMoveDown)}
             title="下移"
           >
             <ChevronDown size={14} />
@@ -141,7 +172,8 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
           <div className="w-px h-4 bg-white/30 mx-0.5" />
           <button
             onClick={handleIndent}
-            className="flex items-center gap-1 px-2 py-1 rounded bg-white/15 hover:bg-white/25 transition-colors text-xs"
+            disabled={!canAnyIndent}
+            className={btnClass(!canAnyIndent)}
             title="降级为子项"
           >
             <CornerDownRight size={14} />
@@ -149,7 +181,8 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
           </button>
           <button
             onClick={handleOutdent}
-            className="flex items-center gap-1 px-2 py-1 rounded bg-white/15 hover:bg-white/25 transition-colors text-xs"
+            disabled={!canAnyOutdent}
+            className={btnClass(!canAnyOutdent)}
             title="升级（移出当前父级）"
           >
             <CornerUpRight size={14} />
@@ -158,7 +191,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
           <div className="w-px h-4 bg-white/30 mx-0.5" />
           <button
             onClick={selectAll}
-            className="flex items-center gap-1 px-2 py-1 rounded bg-white/15 hover:bg-white/25 transition-colors text-xs"
+            className={btnClass(false)}
             title="全选"
           >
             <Check size={14} />
@@ -166,7 +199,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
           </button>
           <button
             onClick={clearSelection}
-            className="flex items-center gap-1 px-2 py-1 rounded bg-white/15 hover:bg-white/25 transition-colors text-xs ml-auto"
+            className={btnClass(false) + " ml-auto"}
             title="取消选择"
           >
             <X size={14} />
