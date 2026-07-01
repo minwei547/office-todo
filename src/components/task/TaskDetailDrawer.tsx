@@ -2,16 +2,19 @@ import { useMemo, useState } from "react";
 import {
   Archive,
   Calendar,
+  Check,
   CheckCircle2,
   Circle,
   Clock,
   Flag,
   Loader2,
   MessageCircle,
+  Plus,
   Send,
   Trash2,
   User,
   RotateCcw,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Drawer } from "@/components/ui/Drawer";
 import { Avatar } from "@/components/ui/Avatar";
@@ -26,6 +29,7 @@ import {
   makeSelectCanEditTask,
 } from "@/store/todoStore";
 import { useUIStore } from "@/store/uiStore";
+import { api } from "@/lib/api";
 import type { Priority, TaskStatus } from "@/types";
 import { PRIORITY_LABEL, STATUS_LABEL } from "@/types";
 import { describeDueDate, relativeTime, todayISO } from "@/lib/date";
@@ -75,6 +79,7 @@ export function TaskDetailDrawer() {
   const [editingDesc, setEditingDesc] = useState(false);
   const [tagDraft, setTagDraft] = useState("");
   const [noteDraft, setNoteDraft] = useState("");
+  const [uploadingImg, setUploadingImg] = useState(false);
 
   const teamMembers = useMemo(
     () =>
@@ -122,6 +127,45 @@ export function TaskDetailDrawer() {
       updateTask(task!.taskId, { description: value });
     }
     setEditingDesc(false);
+  }
+
+  // 粘贴截图到描述
+  async function handleDescPaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const items = e.clipboardData?.items;
+    if (!items || items.length === 0) return;
+    let imageFile: File | null = null;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.kind === "file" && item.type.startsWith("image/")) {
+        imageFile = item.getAsFile();
+        if (imageFile) break;
+      }
+    }
+    if (!imageFile) return;
+    e.preventDefault();
+    const textarea = e.currentTarget;
+    const cursorPos = textarea.selectionStart;
+    const before = textarea.value.slice(0, cursorPos);
+    const after = textarea.value.slice(cursorPos);
+    // 插入占位文字
+    const placeholder = "\n[上传中…]\n";
+    textarea.value = before + placeholder + after;
+    textarea.setSelectionRange(cursorPos + placeholder.length, cursorPos + placeholder.length);
+    try {
+      setUploadingImg(true);
+      const { url } = await api.uploadTaskImage(imageFile);
+      const markdown = `\n![截图](${url})\n`;
+      textarea.value = textarea.value.replace(placeholder, markdown);
+      // 触发 React 更新
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    } catch (err: any) {
+      // 上传失败，移除占位
+      textarea.value = textarea.value.replace(placeholder, "");
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      alert(err.message || "图片上传失败");
+    } finally {
+      setUploadingImg(false);
+    }
   }
 
   function addTag() {
@@ -314,7 +358,7 @@ export function TaskDetailDrawer() {
       {/* 描述 */}
       <Field
         label="描述"
-        hint={editingDesc ? "失焦保存" : undefined}
+        hint={editingDesc ? (uploadingImg ? "图片上传中…" : "失焦保存 · 可粘贴截图") : undefined}
         className="mb-5"
       >
         {editingDesc && canEdit ? (
@@ -323,11 +367,12 @@ export function TaskDetailDrawer() {
             autoFocus
             rows={4}
             defaultValue={task.description}
+            onPaste={handleDescPaste}
             onBlur={(e) => saveDesc(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Escape") setEditingDesc(false);
             }}
-            placeholder="补充任务背景、要求、参考链接…"
+            placeholder="补充任务背景、要求、参考链接…（可直接粘贴截图）"
           />
         ) : canEdit ? (
           <button
@@ -335,21 +380,24 @@ export function TaskDetailDrawer() {
             className="w-full text-left min-h-[60px] px-3 py-2 text-[13px] text-ink bg-bg-soft border border-line rounded-lg hover:border-mint transition-colors focus-ring"
           >
             {task.description ? (
-              <span className="whitespace-pre-wrap">{task.description}</span>
+              <DescContent text={task.description} />
             ) : (
-              <span className="text-dim italic">点击补充描述…</span>
+              <span className="text-dim italic">点击补充描述…（可粘贴截图）</span>
             )}
           </button>
         ) : (
           <div className="w-full text-left min-h-[60px] px-3 py-2 text-[13px] text-ink bg-bg-soft border border-line rounded-lg">
             {task.description ? (
-              <span className="whitespace-pre-wrap">{task.description}</span>
+              <DescContent text={task.description} />
             ) : (
               <span className="text-dim italic">暂无描述</span>
             )}
           </div>
         )}
       </Field>
+
+      {/* 子任务 */}
+      <SubTasksSection taskId={task.taskId} canEdit={canEdit} />
 
       {/* 元信息表单 */}
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
@@ -608,5 +656,127 @@ export function TaskDetailDrawer() {
         </div>
       </div>
     </Drawer>
+  );
+}
+
+/** 渲染描述内容：解析 markdown 图片语法 ![alt](url)，其余按纯文本渲染 */
+function DescContent({ text }: { text: string }) {
+  const parts = text.split(/(!\[[^\]]*\]\([^)]+\))/g);
+  return (
+    <span className="whitespace-pre-wrap break-words">
+      {parts.map((part, i) => {
+        const match = part.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+        if (match) {
+          return (
+            <img
+              key={i}
+              src={match[2]}
+              alt={match[1]}
+              className="max-w-full rounded-lg border border-line my-1 inline-block"
+              style={{ maxHeight: 400 }}
+            />
+          );
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </span>
+  );
+}
+
+/** 子任务区域 */
+function SubTasksSection({ taskId, canEdit }: { taskId: string; canEdit: boolean }) {
+  const allTasks = useTodoStore((s) => s.tasks);
+  const addTask = useTodoStore((s) => s.addTask);
+  const setTaskStatus = useTodoStore((s) => s.setTaskStatus);
+  const openTask = useUIStore((s) => s.openTask);
+  const [subInput, setSubInput] = useState("");
+
+  const subTasks = useMemo(
+    () =>
+      Object.values(allTasks)
+        .filter((t) => t.parentId === taskId)
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
+    [allTasks, taskId],
+  );
+
+  async function addSubTask() {
+    const title = subInput.trim();
+    if (!title) return;
+    const siblings = Object.values(allTasks).filter((t) => t.parentId === taskId);
+    await addTask({
+      title,
+      parentId: taskId,
+      sortOrder: siblings.length,
+      assigneeId: null,
+    });
+    setSubInput("");
+  }
+
+  return (
+    <Field label={`子任务 (${subTasks.length})`} className="mb-5">
+      {subTasks.length > 0 ? (
+        <ul className="space-y-1 mb-2">
+          {subTasks.map((st) => (
+            <li
+              key={st.taskId}
+              className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-bg-soft cursor-pointer transition-colors group"
+              onClick={() => openTask(st.taskId)}
+            >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (canEdit) setTaskStatus(st.taskId, st.status === "done" ? "todo" : "done");
+                }}
+                disabled={!canEdit}
+                className={`h-4 w-4 shrink-0 grid place-items-center rounded-full border transition-colors ${
+                  st.status === "done"
+                    ? "bg-[#6fbf8e] border-success text-white"
+                    : "border-line text-dim"
+                }`}
+              >
+                {st.status === "done" ? <Check size={10} /> : null}
+              </button>
+              <span
+                className={`flex-1 text-[13px] truncate ${
+                  st.status === "done" ? "line-through text-muted" : "text-ink"
+                }`}
+              >
+                {st.title}
+              </span>
+              {st.status === "in_progress" ? (
+                <Loader2 size={11} className="text-[#4a7a68] animate-spin shrink-0" />
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-[12px] text-dim italic mb-2">暂无子任务</p>
+      )}
+      {canEdit ? (
+        <div className="flex items-center gap-2">
+          <input
+            value={subInput}
+            onChange={(e) => setSubInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addSubTask();
+              }
+            }}
+            placeholder="添加子任务，回车创建…"
+            className="flex-1 h-8 px-2.5 text-[13px] bg-bg-soft border border-line rounded-lg focus:outline-none focus:border-mint text-ink placeholder:text-dim"
+          />
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={addSubTask}
+            disabled={!subInput.trim()}
+            trailingIcon={<Plus size={12} />}
+          >
+            添加
+          </Button>
+        </div>
+      ) : null}
+    </Field>
   );
 }

@@ -78,8 +78,11 @@ interface TodoState {
     priority?: Priority;
     dueDate?: string | null;
     tags?: string[];
+    parentId?: string | null;
+    sortOrder?: number;
   }) => Promise<void>;
   updateTask: (taskId: string, patch: Partial<Task>) => Promise<void>;
+  moveTask: (taskId: string, parentId: string | null, sortOrder: number) => Promise<void>;
   setTaskStatus: (taskId: string, status: TaskStatus) => Promise<void>;
   setTaskProgress: (taskId: string, progress: number) => Promise<void>;
   assignTask: (taskId: string, memberId: string | null) => Promise<void>;
@@ -401,6 +404,39 @@ export const useTodoStore = create<TodoState>((set, get) => ({
       set((s) => ({
         activities: { ...s.activities, [activity.activityId]: activity },
       }));
+    }
+  },
+
+  // 移动任务到新父级和排序位置
+  moveTask: async (taskId, parentId, sortOrder) => {
+    const state = get();
+    const task = state.tasks[taskId];
+    if (!task) return;
+    // 防止将任务移动到自己的子嗣下（循环引用）
+    if (parentId) {
+      let p: string | null = parentId;
+      while (p) {
+        if (p === taskId) return; // 不能移到自己的后代下
+        const ancestor = state.tasks[p];
+        if (!ancestor) break;
+        p = ancestor.parentId;
+      }
+    }
+    // 乐观更新
+    set((s) => ({
+      tasks: {
+        ...s.tasks,
+        [taskId]: { ...s.tasks[taskId], parentId, sortOrder, updatedAt: Date.now() },
+      },
+    }));
+    try {
+      await api.updateTask(taskId, { parentId, sortOrder });
+    } catch (e) {
+      // 回滚
+      set((s) => ({
+        tasks: { ...s.tasks, [taskId]: { ...s.tasks[taskId], parentId: task.parentId, sortOrder: task.sortOrder } },
+      }));
+      throw e;
     }
   },
 

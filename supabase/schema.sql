@@ -56,6 +56,8 @@ CREATE TABLE tasks (
   "priority" TEXT NOT NULL DEFAULT 'medium',
   "dueDate" TEXT,
   "tags" TEXT NOT NULL DEFAULT '[]',
+  "parentId" TEXT,
+  "sortOrder" INTEGER NOT NULL DEFAULT 0,
   "createdAt" BIGINT NOT NULL,
   "updatedAt" BIGINT NOT NULL,
   "archived" BOOLEAN NOT NULL DEFAULT FALSE
@@ -123,6 +125,8 @@ CREATE INDEX idx_tasks_teamId_archived ON tasks("teamId", "archived");
 CREATE INDEX idx_tasks_assigneeId ON tasks("assigneeId");
 CREATE INDEX idx_tasks_teamId_createdAt ON tasks("teamId", "createdAt" DESC);
 CREATE INDEX idx_tasks_dueDate ON tasks("dueDate");
+CREATE INDEX idx_tasks_parentId ON tasks("parentId");
+CREATE INDEX idx_tasks_teamId_sortOrder ON tasks("teamId", "sortOrder");
 
 -- 活动：按任务 + 时间排序
 CREATE INDEX idx_activities_taskId ON activities("taskId");

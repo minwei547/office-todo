@@ -39,6 +39,8 @@ export interface Task {
   dueDate: string | null; // ISO 日期 YYYY-MM-DD
   tags: string[];
   progress: number; // 0-100，进度百分比
+  parentId: string | null; // 父任务 ID，null 为顶级任务
+  sortOrder: number; // 同级排序
   createdAt: number;
   updatedAt: number;
   archived: boolean;

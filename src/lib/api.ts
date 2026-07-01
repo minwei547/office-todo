@@ -60,6 +60,8 @@ function rowToTask(row: any) {
     ...row,
     tags: Array.isArray(row.tags) ? row.tags : JSON.parse(row.tags ?? "[]"),
     archived: !!row.archived,
+    parentId: row.parentId ?? null,
+    sortOrder: row.sortOrder ?? 0,
   };
 }
 
@@ -254,7 +256,7 @@ export const api = {
   async getTeamTasks(teamId: string) {
     const member = await getMember();
     if (member.teamId !== teamId) throw new Error("无权访问");
-    const { data: tasks } = await supabase.from("tasks").select("*").eq("teamId", teamId).order("createdAt");
+    const { data: tasks } = await supabase.from("tasks").select("*").eq("teamId", teamId).order("sortOrder").order("createdAt");
     const taskIds = (tasks || []).map((t: any) => t.taskId);
     let activities: any[] = [];
     let notes: any[] = [];
@@ -280,6 +282,8 @@ export const api = {
     priority?: string;
     dueDate?: string | null;
     tags?: string[];
+    parentId?: string | null;
+    sortOrder?: number;
   }) {
     const member = await getMember();
     const title = input.title.trim();
@@ -298,6 +302,8 @@ export const api = {
         dueDate: input.dueDate ?? null,
         tags: JSON.stringify(input.tags || []),
         progress: 0,
+        parentId: input.parentId ?? null,
+        sortOrder: input.sortOrder ?? 0,
         createdAt: now,
         updatedAt: now,
         archived: false,
@@ -318,7 +324,7 @@ export const api = {
     const { data: task } = await supabase.from("tasks").select("*").eq("taskId", taskId).single();
     if (!task) throw new Error("任务不存在");
     if (task.teamId !== member.teamId) throw new Error("无权访问");
-    const allowed = ["title", "description", "assigneeId", "status", "priority", "dueDate", "tags", "progress", "archived"];
+    const allowed = ["title", "description", "assigneeId", "status", "priority", "dueDate", "tags", "progress", "archived", "parentId", "sortOrder"];
     const update: Record<string, any> = {};
     for (const k of allowed) {
       if (k in patch) update[k] = patch[k];
@@ -506,6 +512,22 @@ export const api = {
     if (error) throw new Error(error.message);
     const { data: message } = await supabase.from("messages").select("*").eq("messageId", messageId).single();
     return { message: rowToMessage(message) };
+  },
+
+  // 上传图片到 Storage（供任务描述使用），返回公共 URL
+  async uploadTaskImage(file: File) {
+    const member = await getMember();
+    if (!file) throw new Error("file 必填");
+    if (file.size > 10 * 1024 * 1024) throw new Error("图片不能超过 10MB");
+    if (!file.type.startsWith("image/")) throw new Error("只能上传图片");
+    const ext = file.name.split(".").pop() || "png";
+    const filePath = `${member.teamId}/tasks/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error: uploadErr } = await supabase.storage
+      .from("dm-images")
+      .upload(filePath, file, { contentType: file.type, upsert: false });
+    if (uploadErr) throw new Error("图片上传失败：" + uploadErr.message);
+    const { data: pub } = supabase.storage.from("dm-images").getPublicUrl(filePath);
+    return { url: pub.publicUrl };
   },
 
   async markRead(peerId: string) {
