@@ -80,3 +80,44 @@ export function flattenTree(
 export function childCount(tasks: Record<string, Task>, parentId: string): number {
   return Object.values(tasks).filter((t) => t.parentId === parentId).length;
 }
+
+/** 获取同级兄弟任务（按 sortOrder 排序） */
+export function getSiblings(tasks: Record<string, Task>, taskId: string): Task[] {
+  const task = tasks[taskId];
+  if (!task) return [];
+  const parentId = task.parentId ?? null;
+  return Object.values(tasks)
+    .filter((t) => (t.parentId ?? null) === parentId)
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.createdAt - b.createdAt);
+}
+
+/** 获取同级前一个任务 */
+export function getPrevSibling(tasks: Record<string, Task>, taskId: string): Task | null {
+  const siblings = getSiblings(tasks, taskId);
+  const idx = siblings.findIndex((t) => t.taskId === taskId);
+  return idx > 0 ? siblings[idx - 1] : null;
+}
+
+/** 获取同级后一个任务 */
+export function getNextSibling(tasks: Record<string, Task>, taskId: string): Task | null {
+  const siblings = getSiblings(tasks, taskId);
+  const idx = siblings.findIndex((t) => t.taskId === taskId);
+  return idx >= 0 && idx < siblings.length - 1 ? siblings[idx + 1] : null;
+}
+
+/** 交换两个任务的 sortOrder */
+export function swapSortOrder(
+  tasks: Record<string, Task>,
+  idA: string,
+  idB: string,
+): { idA: string; orderA: number; idB: string; orderB: number } | null {
+  const a = tasks[idA];
+  const b = tasks[idB];
+  if (!a || !b) return null;
+  return {
+    idA,
+    orderA: b.sortOrder,
+    idB,
+    orderB: a.sortOrder,
+  };
+}

@@ -83,6 +83,9 @@ interface TodoState {
   }) => Promise<void>;
   updateTask: (taskId: string, patch: Partial<Task>) => Promise<void>;
   moveTask: (taskId: string, parentId: string | null, sortOrder: number) => Promise<void>;
+  swapTaskOrder: (idA: string, idB: string) => Promise<void>;
+  indentTask: (taskId: string) => Promise<void>;
+  outdentTask: (taskId: string) => Promise<void>;
   setTaskStatus: (taskId: string, status: TaskStatus) => Promise<void>;
   setTaskProgress: (taskId: string, progress: number) => Promise<void>;
   assignTask: (taskId: string, memberId: string | null) => Promise<void>;
@@ -438,6 +441,77 @@ export const useTodoStore = create<TodoState>((set, get) => ({
       }));
       throw e;
     }
+  },
+
+  // 交换两个同任务的 sortOrder
+  swapTaskOrder: async (idA, idB) => {
+    const state = get();
+    const a = state.tasks[idA];
+    const b = state.tasks[idB];
+    if (!a || !b) return;
+    assertCanEditTask(state, idA);
+    assertCanEditTask(state, idB);
+    // 乐观更新
+    set((s) => ({
+      tasks: {
+        ...s.tasks,
+        [idA]: { ...s.tasks[idA], sortOrder: b.sortOrder },
+        [idB]: { ...s.tasks[idB], sortOrder: a.sortOrder },
+      },
+    }));
+    try {
+      await api.updateTask(idA, { sortOrder: b.sortOrder });
+      await api.updateTask(idB, { sortOrder: a.sortOrder });
+    } catch (e) {
+      // 回滚
+      set((s) => ({
+        tasks: {
+          ...s.tasks,
+          [idA]: { ...s.tasks[idA], sortOrder: a.sortOrder },
+          [idB]: { ...s.tasks[idB], sortOrder: b.sortOrder },
+        },
+      }));
+      throw e;
+    }
+  },
+
+  // 升级（增加缩进）：将任务变为前一个同级任务的子任务
+  indentTask: async (taskId) => {
+    const state = get();
+    const task = state.tasks[taskId];
+    if (!task) return;
+    assertCanEditTask(state, taskId);
+    // 找到前一个同级任务
+    const siblings = Object.values(state.tasks)
+      .filter((t) => (t.parentId ?? null) === (task.parentId ?? null) && t.taskId !== taskId)
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    const mySort = task.sortOrder ?? 0;
+    const prev = siblings.filter((t) => (t.sortOrder ?? 0) < mySort).pop();
+    if (!prev) return; // 已经是第一个，无法升级
+    const newParentId = prev.taskId;
+    // 新的 sortOrder 放到目标任务子列表末尾
+    const children = Object.values(state.tasks).filter((t) => t.parentId === newParentId);
+    const newOrder = children.length;
+    await get().moveTask(taskId, newParentId, newOrder);
+  },
+
+  // 降级（减少缩进）：将任务从当前父级移出到祖父级
+  outdentTask: async (taskId) => {
+    const state = get();
+    const task = state.tasks[taskId];
+    if (!task) return;
+    assertCanEditTask(state, taskId);
+    if (!task.parentId) return; // 已经是顶级，无法降级
+    const parent = state.tasks[task.parentId];
+    if (!parent) return;
+    const newParentId = parent.parentId ?? null;
+    // 新的 sortOrder 放到父级后面
+    const siblings = Object.values(state.tasks)
+      .filter((t) => (t.parentId ?? null) === newParentId)
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    const parentIdx = siblings.findIndex((t) => t.taskId === parent.taskId);
+    const newOrder = parentIdx >= 0 ? siblings[parentIdx].sortOrder + 0.5 : siblings.length;
+    await get().moveTask(taskId, newParentId, newOrder);
   },
 
   setTaskStatus: async (taskId, status) => {

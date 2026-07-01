@@ -1,5 +1,13 @@
 import { useMemo, useState, useCallback } from "react";
-import { ChevronRight, Plus } from "lucide-react";
+import {
+  ChevronRight,
+  ChevronUp,
+  ChevronDown,
+  CornerDownRight,
+  CornerUpRight,
+  Check,
+  X,
+} from "lucide-react";
 import type { Task } from "@/types";
 import { TaskCard } from "./TaskCard";
 import { useTodoStore } from "@/store/todoStore";
@@ -7,18 +15,19 @@ import {
   buildTree,
   setDepth,
   flattenTree,
-  getDescendantIds,
   childCount,
+  getPrevSibling,
+  getNextSibling,
 } from "@/lib/tree";
 import { cn } from "@/lib/utils";
 
 export function TaskList({ tasks }: { tasks: Task[] }) {
   const allTasks = useTodoStore((s) => s.tasks);
-  const moveTask = useTodoStore((s) => s.moveTask);
+  const indentTask = useTodoStore((s) => s.indentTask);
+  const outdentTask = useTodoStore((s) => s.outdentTask);
+  const swapTaskOrder = useTodoStore((s) => s.swapTaskOrder);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
-  const [dragId, setDragId] = useState<string | null>(null);
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
-  const [dragOverPos, setDragOverPos] = useState<"before" | "after" | "inside" | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   // 把传入的扁平 tasks 数组转为 Record，方便 buildTree
   const taskMap = useMemo(() => {
@@ -50,132 +59,159 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
     });
   }, []);
 
-  // ── 拖拽处理 ──
-  function handleDragStart(e: React.DragEvent, taskId: string) {
-    setDragId(taskId);
-    e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", taskId);
-  }
+  // ── 勾选操作 ──
+  const toggleSelect = useCallback((taskId: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
+      return next;
+    });
+  }, []);
 
-  function handleDragOver(e: React.DragEvent, taskId: string) {
-    if (!dragId || dragId === taskId) return;
-    // 防止拖到自己的后代上
-    const descendants = getDescendantIds(allTasks, dragId);
-    if (descendants.has(taskId)) return;
+  const clearSelection = useCallback(() => setSelected(new Set()), []);
+  const selectAll = useCallback(() => {
+    setSelected(new Set(flat.map((n) => n.task.taskId)));
+  }, [flat]);
 
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
+  // ── 层级调整操作 ──
+  const canIndent = (taskId: string): boolean => {
+    return getPrevSibling(allTasks, taskId) !== null;
+  };
+  const canOutdent = (taskId: string): boolean => {
+    return !!allTasks[taskId]?.parentId;
+  };
+  const canMoveUp = (taskId: string): boolean => {
+    return getPrevSibling(allTasks, taskId) !== null;
+  };
+  const canMoveDown = (taskId: string): boolean => {
+    return getNextSibling(allTasks, taskId) !== null;
+  };
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const y = e.clientY - rect.top;
-    const h = rect.height;
-
-    if (y < h * 0.25) {
-      setDragOverId(taskId);
-      setDragOverPos("before");
-    } else if (y > h * 0.75) {
-      setDragOverId(taskId);
-      setDragOverPos("after");
-    } else {
-      setDragOverId(taskId);
-      setDragOverPos("inside");
+  // 对所有选中的任务执行操作
+  const handleIndent = async () => {
+    for (const id of selected) {
+      await indentTask(id);
     }
-  }
-
-  function handleDrop(e: React.DragEvent, targetTaskId: string) {
-    e.preventDefault();
-    if (!dragId || dragId === targetTaskId) {
-      resetDrag();
-      return;
+  };
+  const handleOutdent = async () => {
+    for (const id of selected) {
+      await outdentTask(id);
     }
-
-    const descendants = getDescendantIds(allTasks, dragId);
-    if (descendants.has(targetTaskId)) {
-      resetDrag();
-      return;
+  };
+  const handleMoveUp = async () => {
+    for (const id of selected) {
+      const prev = getPrevSibling(allTasks, id);
+      if (prev) await swapTaskOrder(id, prev.taskId);
     }
-
-    const targetTask = allTasks[targetTaskId];
-    if (!targetTask) {
-      resetDrag();
-      return;
+  };
+  const handleMoveDown = async () => {
+    for (const id of selected) {
+      const next = getNextSibling(allTasks, id);
+      if (next) await swapTaskOrder(id, next.taskId);
     }
-
-    let newParentId: string | null;
-    let newOrder: number;
-
-    if (dragOverPos === "inside") {
-      // 嵌套到目标任务下
-      newParentId = targetTaskId;
-      const siblings = Object.values(allTasks).filter(
-        (t) => t.parentId === targetTaskId,
-      );
-      newOrder = siblings.length;
-    } else {
-      // 同级排序：before 或 after
-      newParentId = targetTask.parentId ?? null;
-      const siblings = Object.values(allTasks)
-        .filter((t) => (t.parentId ?? null) === newParentId && t.taskId !== dragId)
-        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-
-      const targetIdx = siblings.findIndex((t) => t.taskId === targetTaskId);
-      if (dragOverPos === "before") {
-        newOrder = targetIdx >= 0 ? siblings[targetIdx].sortOrder - 0.5 : 0;
-      } else {
-        newOrder = targetIdx >= 0 ? siblings[targetIdx].sortOrder + 0.5 : siblings.length;
-      }
-    }
-
-    moveTask(dragId, newParentId, newOrder);
-    resetDrag();
-  }
-
-  function resetDrag() {
-    setDragId(null);
-    setDragOverId(null);
-    setDragOverPos(null);
-  }
+  };
 
   if (tasks.length === 0) return null;
 
+  const selectedCount = selected.size;
+
   return (
     <div className="biz-card rounded-lg overflow-hidden">
+      {/* 选中项工具栏 */}
+      {selectedCount > 0 && (
+        <div className="sticky top-0 z-20 bg-[#4a7a68] text-white px-3 py-2 flex items-center gap-1.5 shadow-md">
+          <span className="text-xs font-medium mr-1">已选 {selectedCount} 项</span>
+          <button
+            onClick={handleMoveUp}
+            className="flex items-center gap-1 px-2 py-1 rounded bg-white/15 hover:bg-white/25 transition-colors text-xs"
+            title="上移"
+          >
+            <ChevronUp size={14} />
+            上移
+          </button>
+          <button
+            onClick={handleMoveDown}
+            className="flex items-center gap-1 px-2 py-1 rounded bg-white/15 hover:bg-white/25 transition-colors text-xs"
+            title="下移"
+          >
+            <ChevronDown size={14} />
+            下移
+          </button>
+          <div className="w-px h-4 bg-white/30 mx-0.5" />
+          <button
+            onClick={handleIndent}
+            className="flex items-center gap-1 px-2 py-1 rounded bg-white/15 hover:bg-white/25 transition-colors text-xs"
+            title="降级为子项"
+          >
+            <CornerDownRight size={14} />
+            降级
+          </button>
+          <button
+            onClick={handleOutdent}
+            className="flex items-center gap-1 px-2 py-1 rounded bg-white/15 hover:bg-white/25 transition-colors text-xs"
+            title="升级（移出当前父级）"
+          >
+            <CornerUpRight size={14} />
+            升级
+          </button>
+          <div className="w-px h-4 bg-white/30 mx-0.5" />
+          <button
+            onClick={selectAll}
+            className="flex items-center gap-1 px-2 py-1 rounded bg-white/15 hover:bg-white/25 transition-colors text-xs"
+            title="全选"
+          >
+            <Check size={14} />
+            全选
+          </button>
+          <button
+            onClick={clearSelection}
+            className="flex items-center gap-1 px-2 py-1 rounded bg-white/15 hover:bg-white/25 transition-colors text-xs ml-auto"
+            title="取消选择"
+          >
+            <X size={14} />
+            取消
+          </button>
+        </div>
+      )}
+
       {flat.map((node) => {
         const { task, depth } = node;
         const hasChildren = childCount(allTasks, task.taskId) > 0;
         const isCollapsed = collapsed.has(task.taskId);
-        const isDragOver = dragOverId === task.taskId;
-        const isDragging = dragId === task.taskId;
+        const isSelected = selected.has(task.taskId);
 
         return (
           <div
             key={task.taskId}
-            draggable
-            onDragStart={(e) => handleDragStart(e, task.taskId)}
-            onDragOver={(e) => handleDragOver(e, task.taskId)}
-            onDragLeave={() => {
-              if (dragOverId === task.taskId) setDragOverId(null);
-            }}
-            onDrop={(e) => handleDrop(e, task.taskId)}
-            onDragEnd={resetDrag}
             className={cn(
-              "relative transition-colors",
-              isDragging && "opacity-40",
-              isDragOver && dragOverPos === "inside" && "bg-mint-soft/50 ring-1 ring-mint/30",
+              "relative transition-colors border-b border-black/[0.04] last:border-b-0",
+              isSelected
+                ? "bg-[#c8e9dd]/40 ring-1 ring-inset ring-[#4a7a68]/30"
+                : "hover:bg-black/[0.015]",
             )}
           >
-            {/* 拖拽放置指示线 */}
-            {isDragOver && dragOverPos === "before" && (
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#4a7a68] z-10" />
-            )}
-            {isDragOver && dragOverPos === "after" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#4a7a68] z-10" />
-            )}
-
             <div
               className="flex items-center"
               style={{ paddingLeft: `${depth * 28}px` }}
             >
+              {/* 勾选框 */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleSelect(task.taskId);
+                }}
+                className={cn(
+                  "shrink-0 w-6 h-6 grid place-items-center rounded transition-all ml-1 mr-0.5",
+                  isSelected
+                    ? "bg-[#4a7a68] border-[#4a7a68] text-white shadow-sm"
+                    : "bg-white border-2 border-gray-300 hover:border-[#4a7a68] text-transparent",
+                )}
+                aria-label={isSelected ? "取消选择" : "选择"}
+              >
+                <Check size={13} strokeWidth={3} />
+              </button>
+
               {/* 展开/折叠按钮 */}
               {hasChildren ? (
                 <button
