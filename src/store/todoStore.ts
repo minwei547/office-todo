@@ -475,7 +475,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     }
   },
 
-  // 升级（增加缩进）：将任务变为前一个同级任务的子任务
+  // 降级（增加缩进）：将任务变为前一个同级任务的子项
   indentTask: async (taskId) => {
     const state = get();
     const task = state.tasks[taskId];
@@ -487,30 +487,34 @@ export const useTodoStore = create<TodoState>((set, get) => ({
       .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
     const mySort = task.sortOrder ?? 0;
     const prev = siblings.filter((t) => (t.sortOrder ?? 0) < mySort).pop();
-    if (!prev) return; // 已经是第一个，无法升级
+    if (!prev) return; // 已经是第一个，无法降级
     const newParentId = prev.taskId;
-    // 新的 sortOrder 放到目标任务子列表末尾
-    const children = Object.values(state.tasks).filter((t) => t.parentId === newParentId);
-    const newOrder = children.length;
+    // 新的 sortOrder 放到目标任务子列表末尾（整数，避免 INTEGER 字段拒绝小数）
+    const children = Object.values(state.tasks)
+      .filter((t) => t.parentId === newParentId && t.taskId !== taskId);
+    const newOrder = children.length > 0
+      ? Math.max(...children.map((c) => c.sortOrder ?? 0)) + 1
+      : 0;
     await get().moveTask(taskId, newParentId, newOrder);
   },
 
-  // 降级（减少缩进）：将任务从当前父级移出到祖父级
+  // 升级（减少缩进）：将任务从当前父级移出到祖父级
   outdentTask: async (taskId) => {
     const state = get();
     const task = state.tasks[taskId];
     if (!task) return;
     assertCanEditTask(state, taskId);
-    if (!task.parentId) return; // 已经是顶级，无法降级
+    if (!task.parentId) return; // 已经是顶级，无法升级
     const parent = state.tasks[task.parentId];
     if (!parent) return;
     const newParentId = parent.parentId ?? null;
-    // 新的 sortOrder 放到父级后面
+    // 新的 sortOrder 放到目标同级末尾（整数，避免 INTEGER 字段拒绝小数）
     const siblings = Object.values(state.tasks)
-      .filter((t) => (t.parentId ?? null) === newParentId)
+      .filter((t) => (t.parentId ?? null) === newParentId && t.taskId !== taskId)
       .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-    const parentIdx = siblings.findIndex((t) => t.taskId === parent.taskId);
-    const newOrder = parentIdx >= 0 ? siblings[parentIdx].sortOrder + 0.5 : siblings.length;
+    const newOrder = siblings.length > 0
+      ? Math.max(...siblings.map((s) => s.sortOrder ?? 0)) + 1
+      : 0;
     await get().moveTask(taskId, newParentId, newOrder);
   },
 
